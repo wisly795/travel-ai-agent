@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>旅遊行程報價系統</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>旅遊行程報價系統</h1>
+    <p class="demo">模擬資料，非真實報價</p>
+    <nav>
+      <button id="tab-chat" class="tab" type="button">AI 客服</button>
+      <button id="tab-customer" class="tab" type="button">查行程</button>
+      <button id="tab-policy" class="tab" type="button">旅遊規定</button>
+      <button id="tab-staff" class="tab" type="button">業務後台</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="chat" hidden>
+      <div class="panel">
+        <div class="row">
+          <h2>AI 客服</h2>
+          <button id="chat-new" class="ghost" type="button">新對話</button>
+        </div>
+        <p id="chat-status" class="hint"></p>
+        <div id="chat-log" class="chat-log" aria-live="polite"></div>
+        <div id="chat-examples" class="examples">
+          <button type="button" class="chip">4 個人想去沖繩，每人預算 3 萬</button>
+          <button type="button" class="chip">京都有哪些行程？</button>
+          <button type="button" class="chip">出發前取消可以退多少？</button>
+        </div>
+        <form id="chat-form" class="chat-form">
+          <input id="chat-input" maxlength="500" autocomplete="off" required
+                 placeholder="輸入問題，例如：2 個人去首爾 4 天多少錢？" aria-label="輸入問題">
+          <button type="submit">送出</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="customer" hidden>
+      <form id="search-form" class="panel">
+        <h2>1. 查詢行程</h2>
+        <div class="fields">
+          <label>目的地<select id="destination"></select></label>
+          <label>人數<input id="people" type="number" min="1" max="20" value="2" required></label>
+          <label>每人預算<input id="max-price" type="number" min="1" step="1000" placeholder="不限"></label>
+        </div>
+        <button type="submit">查詢</button>
+      </form>
+
+      <div id="packages" class="cards" aria-live="polite"></div>
+
+      <form id="quote-form" class="panel" hidden>
+        <h2>2. 建立報價</h2>
+        <p>已選行程：<strong id="selected-package"></strong></p>
+        <div class="fields">
+          <label>飯店<select id="hotel"></select></label>
+          <label>出發日期<input id="departure-date" type="date" required></label>
+          <label>姓名<input id="customer-name" maxlength="50" required></label>
+        </div>
+        <button type="submit">建立報價</button>
+      </form>
+
+      <div id="result" class="panel result" hidden aria-live="polite"></div>
+    </section>
+
+    <section id="policy" hidden>
+      <form id="policy-form" class="panel">
+        <h2>查規定</h2>
+        <p class="hint">用自己的話描述問題，系統會用向量搜尋找出意思最接近的條文（AI 客服回答規定時也是用這個方法）。</p>
+        <div class="chat-form">
+          <input id="policy-input" maxlength="300" required placeholder="例如：出發前一週取消可以退多少？" aria-label="要查的規定問題">
+          <button type="submit">搜尋</button>
+        </div>
+        <div id="policy-results" class="policy-results" aria-live="polite"></div>
+      </form>
+      <div id="policy-list"></div>
+    </section>
+
+    <section id="staff" hidden>
+      <form id="staff-form" class="panel">
+        <h2>後台登入</h2>
+        <div class="fields">
+          <label>帳號<input id="login-username" autocomplete="username" required></label>
+          <label>密碼<input id="login-password" type="password" autocomplete="current-password" required></label>
+        </div>
+        <button type="submit">登入</button>
+      </form>
+      <div id="staff-result" hidden>
+        <div class="row whoami">
+          <span id="whoami"></span>
+          <button id="logout" class="ghost" type="button">登出</button>
+        </div>
+        <div id="usage" class="stats"></div>
+        <nav class="subnav">
+          <button class="subtab active" data-view="view-dashboard" type="button">儀表板</button>
+          <button class="subtab" data-view="view-notifications" type="button">通知 <span id="unread"></span></button>
+          <button class="subtab" data-view="view-quotes" type="button">報價</button>
+          <button class="subtab" data-view="view-turns" type="button">AI 對話紀錄</button>
+          <button class="subtab" data-view="view-handoffs" type="button">轉接單</button>
+          <button class="subtab" data-view="view-erp" type="button">ERP 同步</button>
+          <button class="subtab" data-view="view-procurement" type="button">採購</button>
+          <button class="subtab" data-view="view-evals" type="button">AI 評測</button>
+          <button id="subtab-users" class="subtab" data-view="view-users" type="button" hidden>系統管理</button>
+        </nav>
+
+        <div id="view-evals" class="panel view" hidden>
+          <div class="row">
+            <h2>AI 自動評測</h2>
+            <button id="eval-run" type="button" hidden>執行評測（約 2 分鐘）</button>
+          </div>
+          <p class="hint">20 題標準問答，用程式規則自動評分：金額是否正確、是否附條文出處、是否用對工具、該拒絕時是否拒絕、稱謂是否正確。改 AI 規則或換模型前後各跑一次，用數字確認有沒有變好。只有管理員能執行。</p>
+          <div id="eval-summary" class="stats"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>題號</th><th>類別</th><th>問題</th><th>結果</th><th>沒通過的原因</th></tr></thead>
+              <tbody id="eval-rows"></tbody>
+            </table>
+          </div>
+          <h3>歷次評測</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>時間</th><th>說明</th><th>模型</th><th>分數</th><th>花費</th></tr></thead>
+              <tbody id="eval-history"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="view-users" class="panel view" hidden>
+          <h2>系統管理：帳號</h2>
+          <p class="hint">只有管理員看得到。密碼以加鹽雜湊存放；連續錯 5 次鎖定 15 分鐘；停用或重設密碼會讓該帳號立即登出。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>帳號</th><th>名稱</th><th>角色</th><th>狀態</th><th>最後登入</th><th>操作</th></tr></thead>
+              <tbody id="user-rows"></tbody>
+            </table>
+          </div>
+          <form id="user-form" class="new-user">
+            <h3>新增帳號</h3>
+            <div class="fields">
+              <label>帳號<input id="new-username" required pattern="[a-z0-9_]{3,30}" placeholder="小寫英文或數字"></label>
+              <label>名稱<input id="new-display" required maxlength="30"></label>
+              <label>角色<select id="new-role"><option>業務</option><option>主管</option><option>管理員</option></select></label>
+              <label>初始密碼<input id="new-password" type="password" required autocomplete="new-password" placeholder="至少 8 碼，英文加數字"></label>
+            </div>
+            <button type="submit">新增</button>
+          </form>
+          <h3>合作夥伴 API（官網串接）</h3>
+          <p class="hint">合作夥伴的後端用 API 金鑰呼叫 <a href="/partner/docs" target="_blank" rel="noopener">合作夥伴 API 文件</a>。金鑰只在建立時顯示一次，系統只存雜湊；超過每分鐘上限回 429。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>名稱</th><th>金鑰開頭</th><th>每分鐘上限</th><th>24 小時呼叫</th><th>被限流</th><th>報價數</th><th>狀態</th><th>操作</th></tr></thead>
+              <tbody id="partner-rows"></tbody>
+            </table>
+          </div>
+          <form id="partner-form" class="new-user">
+            <div class="fields">
+              <label>合作夥伴名稱<input id="partner-name" required maxlength="50" placeholder="例如：某某旅遊平台"></label>
+              <label>每分鐘上限<input id="partner-limit" type="number" min="1" max="600" value="30" required></label>
+            </div>
+            <button type="submit">建立並產生金鑰</button>
+          </form>
+          <div id="partner-key" class="key-once" hidden></div>
+          <details class="chart-table">
+            <summary>最近的 API 呼叫</summary>
+            <table><thead><tr><th>時間</th><th>合作夥伴</th><th>路徑</th><th>結果</th></tr></thead><tbody id="partner-calls"></tbody></table>
+          </details>
+
+          <h3>登入紀錄</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>時間</th><th>帳號</th><th>結果</th><th>說明</th></tr></thead>
+              <tbody id="login-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="view-dashboard" class="view">
+          <div id="kpis" class="stats kpis"></div>
+          <div class="dash-grid">
+            <section class="panel">
+              <h3>每日成交金額（近 14 天）</h3>
+              <div id="chart-deals"></div>
+            </section>
+            <section class="panel">
+              <h3>每日報價數（近 14 天）</h3>
+              <div id="chart-quotes"></div>
+            </section>
+            <section class="panel">
+              <h3>熱門行程（近 30 天報價數）</h3>
+              <div id="chart-packages"></div>
+            </section>
+            <section class="panel">
+              <h3>報價來源（近 30 天）</h3>
+              <div id="chart-sources"></div>
+              <h3 class="sub">AI 每日花費（美元，近 14 天）</h3>
+              <div id="chart-ai"></div>
+            </section>
+          </div>
+        </div>
+
+        <div id="view-notifications" class="panel view" hidden>
+          <div class="row">
+            <h2>通知中心</h2>
+            <button id="read-all" class="ghost" type="button">全部標為已讀</button>
+          </div>
+          <p class="hint">由 n8n 自動化流程產生：新報價、每日報表、採購待核准、ERP 同步失敗。</p>
+          <div id="notification-list"></div>
+        </div>
+
+        <div id="view-procurement" class="panel view" hidden>
+          <h2>採購（向供應商訂房）</h2>
+          <p class="hint">報價成交後自動產生請購單。AI 比價並建立草稿，由人核准後才會下單；金額達門檻或超出預算需要主管帳號核准。</p>
+          <div id="procurement-list"></div>
+        </div>
+
+        <div id="view-quotes" class="panel view" hidden>
+          <div class="row">
+            <h2>報價紀錄</h2>
+            <button id="export" type="button">下載 CSV</button>
+          </div>
+          <p class="hint">改成「成交」會自動把訂單送到 ERP。</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>編號</th><th>客人</th><th>行程</th><th>飯店</th><th>人數</th><th>出發日</th><th>總價</th><th>來源</th><th>狀態</th><th>ERP</th><th>操作</th></tr>
+              </thead>
+              <tbody id="quote-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="view-turns" class="panel view" hidden>
+          <h2>AI 對話紀錄</h2>
+          <p class="hint">每次提問的回答、使用的工具與花費，點開可看工具的輸入和結果，方便查錯。</p>
+          <div id="turn-list"></div>
+        </div>
+
+        <div id="view-handoffs" class="panel view" hidden>
+          <h2>轉接單</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>編號</th><th>原因</th><th>建立時間</th><th>狀態</th><th>操作</th></tr></thead>
+              <tbody id="handoff-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="view-erp" class="panel view" hidden>
+          <div class="row">
+            <h2>ERP 同步</h2>
+            <span id="erp-health" class="hint"></span>
+          </div>
+          <div class="toolbar">
+            <button id="erp-retry-all" type="button">重送全部失敗</button>
+            <button id="erp-fail-on" class="ghost" type="button">模擬 ERP 故障</button>
+            <button id="erp-fail-off" class="ghost" type="button">恢復 ERP</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>報價</th><th>客人</th><th>金額</th><th>結果</th><th>ERP 單號</th><th>次數</th><th>錯誤訊息</th><th>操作</th></tr></thead>
+              <tbody id="erp-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p id="message" class="message" role="alert" hidden></p>
+  </main>
+  <script src="/static/charts.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+{
+  "id": "tqErpRetry000001",
+  "name": "4 ERP 同步失敗重試",
+  "nodes": [
+    {
+      "name": "每 10 分鐘",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/10 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "tqErpRetry000001-node0"
+    },
+    {
+      "name": "重送失敗的同步",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/erp/retry-failed",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tqErpRetry000001-node1"
+    },
+    {
+      "name": "重試 3 次仍失敗",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const detail = $input.first().json.still_failed_detail || [];\nreturn detail.filter(d => d.attempts >= 3).map(d => ({ json: d }));"
+      },
+      "id": "tqErpRetry000001-node2"
+    },
+    {
+      "name": "通知負責人",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/notifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ kind: '同步失敗', title: '報價 #' + $json.quote_id + ' 同步 ERP 已失敗 ' + $json.attempts + ' 次', body: '最後錯誤：' + $json.last_error + '。系統會繼續每 10 分鐘重試，請確認 ERP 狀態或聯絡系統商。', dedupe_key: 'erp-fail-' + $json.quote_id }) }}"
+      },
+      "id": "tqErpRetry000001-node3"
+    },
+    {
+      "name": "只寄新的通知",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.created);"
+      },
+      "id": "tqErpRetry000001-node4"
+    },
+    {
+      "name": "寄信給 IT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAILPIT_URL }}/api/v1/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ From: { Email: 'noreply@travel.example', Name: '旅遊報價系統' }, To: [{ Email: $env.IT_EMAIL }], Subject: '[旅遊報價系統] ' + $json.notification.title, Text: $json.notification.body + String.fromCharCode(10, 10) + '後台：' + $env.SITE_URL + String.fromCharCode(10) + '（模擬信件，由 n8n 自動寄出）' }) }}",
+        "options": {}
+      },
+      "id": "tqErpRetry000001-node5"
+    },
+    {
+      "name": "手動執行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        220
+      ],
+      "parameters": {},
+      "id": "tqErpRetry000001-node6"
+    }
+  ],
+  "connections": {
+    "每 10 分鐘": {
+      "main": [
+        [
+          {
+            "node": "重送失敗的同步",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "重送失敗的同步": {
+      "main": [
+        [
+          {
+            "node": "重試 3 次仍失敗",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "重試 3 次仍失敗": {
+      "main": [
+        [
+          {
+            "node": "通知負責人",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "通知負責人": {
+      "main": [
+        [
+          {
+            "node": "只寄新的通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只寄新的通知": {
+      "main": [
+        [
+          {
+            "node": "寄信給 IT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "手動執行": {
+      "main": [
+        [
+          {
+            "node": "重送失敗的同步",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {}
+}

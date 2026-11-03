@@ -1,0 +1,208 @@
+{
+  "id": "tqDailyReport001",
+  "name": "2 每日報表",
+  "nodes": [
+    {
+      "name": "每天 9 點",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "tqDailyReport001-node0"
+    },
+    {
+      "name": "取得昨日數據",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.APP_URL }}/api/reports/daily",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tqDailyReport001-node1"
+    },
+    {
+      "name": "整理報表文字",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const r = $input.first().json;\nconst lines = [\n  `報價 ${r.quotes} 張（AI 客服 ${r.ai_quotes} 張）`,\n  `成交 ${r.deals} 張，金額 NT$ ${Number(r.deal_amount).toLocaleString('en-US')}`,\n  `熱門行程：${r.top_packages.length ? r.top_packages.join('、') : '無'}`,\n  `AI 對話 ${r.ai_turns} 次，花費 US$ ${r.ai_cost_usd.toFixed(4)}`,\n];\nreturn [{ json: { date: r.date, text: lines.join(String.fromCharCode(10)) } }];"
+      },
+      "id": "tqDailyReport001-node2"
+    },
+    {
+      "name": "通知中心",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/notifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ kind: '每日報表', title: $json.date + ' 每日報表', body: $json.text, dedupe_key: 'daily-' + $json.date }) }}"
+      },
+      "id": "tqDailyReport001-node3"
+    },
+    {
+      "name": "只寄新的通知",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.created);"
+      },
+      "id": "tqDailyReport001-node4"
+    },
+    {
+      "name": "寄信給主管",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAILPIT_URL }}/api/v1/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ From: { Email: 'noreply@travel.example', Name: '旅遊報價系統' }, To: [{ Email: $env.MANAGER_EMAIL }], Subject: '[旅遊報價系統] ' + $json.notification.title, Text: $json.notification.body + String.fromCharCode(10, 10) + '後台：' + $env.SITE_URL + String.fromCharCode(10) + '（模擬信件，由 n8n 自動寄出）' }) }}",
+        "options": {}
+      },
+      "id": "tqDailyReport001-node5"
+    },
+    {
+      "name": "手動執行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        220
+      ],
+      "parameters": {},
+      "id": "tqDailyReport001-node6"
+    }
+  ],
+  "connections": {
+    "每天 9 點": {
+      "main": [
+        [
+          {
+            "node": "取得昨日數據",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得昨日數據": {
+      "main": [
+        [
+          {
+            "node": "整理報表文字",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "整理報表文字": {
+      "main": [
+        [
+          {
+            "node": "通知中心",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "通知中心": {
+      "main": [
+        [
+          {
+            "node": "只寄新的通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只寄新的通知": {
+      "main": [
+        [
+          {
+            "node": "寄信給主管",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "手動執行": {
+      "main": [
+        [
+          {
+            "node": "取得昨日數據",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {}
+}

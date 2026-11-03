@@ -1,0 +1,21 @@
+.env
+登入資訊.txt
+__pycache__/
+*.pyc
+dist/
+node_modules/
+frontend/dist/
+
+# 個人求職與學習資料，不放進公開的版本庫
+CLAUDE.md
+學習筆記/
+docs/專案狀態.md
+docs/成品規劃.md
+docs/開發過程紀錄.md
+docs/作品集/
+docs/過程截圖/Claude_API設定/
+
+# 模型訓練產物（體積大，由 tools/finetune 重新產生）
+models/
+ci-shots/
+ci.env

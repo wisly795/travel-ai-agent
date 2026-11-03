@@ -1,0 +1,359 @@
+{
+  "id": "tqPoReminder0001",
+  "name": "3 採購核准提醒",
+  "nodes": [
+    {
+      "name": "每小時",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "tqPoReminder0001-node0"
+    },
+    {
+      "name": "待核准採購單",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        -100
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.APP_URL }}/api/purchase-orders/pending?older_than_hours=0",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tqPoReminder0001-node1"
+    },
+    {
+      "name": "超過 24 小時",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        100
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.APP_URL }}/api/purchase-orders/pending?older_than_hours=24",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tqPoReminder0001-node2"
+    },
+    {
+      "name": "只留有資料的",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.id);"
+      },
+      "id": "tqPoReminder0001-node3"
+    },
+    {
+      "name": "只留有資料的（逾時）",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.id);"
+      },
+      "id": "tqPoReminder0001-node4"
+    },
+    {
+      "name": "通知待核准",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/notifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ kind: '採購待核准', title: '採購單 #' + $json.id + ' 待' + $json.approver_role + '核准', body: '金額 NT$ ' + Number($json.amount).toLocaleString('en-US') + '（報價 #' + $json.quote_id + '），請到後台採購頁處理。', dedupe_key: 'po-' + $json.id }) }}"
+      },
+      "id": "tqPoReminder0001-node5"
+    },
+    {
+      "name": "再次提醒",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/notifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ kind: '採購待核准', title: '再次提醒：採購單 #' + $json.id + ' 超過 24 小時未處理', body: '需要' + $json.approver_role + '核准，金額 NT$ ' + Number($json.amount).toLocaleString('en-US') + '。', dedupe_key: 'po-' + $json.id + '-24h' }) }}"
+      },
+      "id": "tqPoReminder0001-node6"
+    },
+    {
+      "name": "只寄新的通知",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.created);"
+      },
+      "id": "tqPoReminder0001-node7"
+    },
+    {
+      "name": "只寄新的通知（逾時）",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.created);"
+      },
+      "id": "tqPoReminder0001-node8"
+    },
+    {
+      "name": "寄信給核准人",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAILPIT_URL }}/api/v1/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ From: { Email: 'noreply@travel.example', Name: '旅遊報價系統' }, To: [{ Email: ($json.notification.title.includes('主管') ? $env.MANAGER_EMAIL : $env.SALES_EMAIL) }], Subject: '[旅遊報價系統] ' + $json.notification.title, Text: $json.notification.body + String.fromCharCode(10, 10) + '後台：' + $env.SITE_URL + String.fromCharCode(10) + '（模擬信件，由 n8n 自動寄出）' }) }}",
+        "options": {}
+      },
+      "id": "tqPoReminder0001-node9"
+    },
+    {
+      "name": "寄信給核准人（逾時）",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAILPIT_URL }}/api/v1/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ From: { Email: 'noreply@travel.example', Name: '旅遊報價系統' }, To: [{ Email: ($json.notification.body.includes('主管') ? $env.MANAGER_EMAIL : $env.SALES_EMAIL) }], Subject: '[旅遊報價系統] ' + $json.notification.title, Text: $json.notification.body + String.fromCharCode(10, 10) + '後台：' + $env.SITE_URL + String.fromCharCode(10) + '（模擬信件，由 n8n 自動寄出）' }) }}",
+        "options": {}
+      },
+      "id": "tqPoReminder0001-node10"
+    },
+    {
+      "name": "手動執行",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        220
+      ],
+      "parameters": {},
+      "id": "tqPoReminder0001-node11"
+    }
+  ],
+  "connections": {
+    "每小時": {
+      "main": [
+        [
+          {
+            "node": "待核准採購單",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "超過 24 小時",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "待核准採購單": {
+      "main": [
+        [
+          {
+            "node": "只留有資料的",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "超過 24 小時": {
+      "main": [
+        [
+          {
+            "node": "只留有資料的（逾時）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只留有資料的": {
+      "main": [
+        [
+          {
+            "node": "通知待核准",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只留有資料的（逾時）": {
+      "main": [
+        [
+          {
+            "node": "再次提醒",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "通知待核准": {
+      "main": [
+        [
+          {
+            "node": "只寄新的通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "再次提醒": {
+      "main": [
+        [
+          {
+            "node": "只寄新的通知（逾時）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只寄新的通知": {
+      "main": [
+        [
+          {
+            "node": "寄信給核准人",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只寄新的通知（逾時）": {
+      "main": [
+        [
+          {
+            "node": "寄信給核准人（逾時）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "手動執行": {
+      "main": [
+        [
+          {
+            "node": "待核准採購單",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "超過 24 小時",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {}
+}

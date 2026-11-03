@@ -1,0 +1,4 @@
+# 容器內執行的腳本一律用 LF 換行，Windows 的 .bat 用 CRLF
+*.sh text eol=lf
+*.py text eol=lf
+*.bat text eol=crlf

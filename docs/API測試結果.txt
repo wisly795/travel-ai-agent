@@ -1,0 +1,24 @@
+PASS 健康檢查 
+PASS 目的地清單 ['京都', '台東', '沖繩', '花蓮', '首爾']
+PASS 目的地篩選 
+PASS 預算篩選 
+PASS 查無資料回傳空清單 
+PASS 名額篩選 
+PASS SQL 注入無效 
+PASS 飯店篩選 
+PASS 報價公式 85200 / 85200
+PASS 房間數無條件進位 
+PASS 人數 0 被拒絕 
+PASS 人數 21 被拒絕 
+PASS 空白姓名被拒絕 
+PASS 不存在的行程 
+PASS 目的地不同被拒絕 
+PASS 超過剩餘名額被拒絕 
+PASS 未登入不能看報價 
+PASS 錯誤權杖被拒絕 
+PASS 未登入不能下載 
+PASS 業務看報價（JOIN） 
+PASS CSV 下載與公式防護 
+PASS API 文件頁關閉 
+
+22/22 通過

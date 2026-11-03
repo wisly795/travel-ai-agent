@@ -1,0 +1,123 @@
+{
+  "id": "tqNewQuote000001",
+  "name": "1 新報價通知",
+  "nodes": [
+    {
+      "name": "收到新報價",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "5d1f3c2a-7b8e-4f6a-9c0d-1e2f3a4b5c6d",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-quote",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "tqNewQuote000001-node0"
+    },
+    {
+      "name": "通知中心",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/notifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Staff-Token",
+              "value": "={{ $env.AUTOMATION_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ kind: '新報價', title: '新報價 #' + $json.body.id + '：' + $json.body.customer_name, body: $json.body.package + '＋' + $json.body.hotel + '｜' + $json.body.people + ' 人｜NT$ ' + Number($json.body.total_price).toLocaleString('en-US') + '｜來源：' + ({ ai: 'AI 客服', partner: '官網串接' }[$json.body.source] || '網頁') + '。請在 24 小時內聯絡客人。', dedupe_key: 'quote-' + $json.body.id }) }}"
+      },
+      "id": "tqNewQuote000001-node1"
+    },
+    {
+      "name": "只寄新的通知",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return $input.all().filter(item => item.json.created);"
+      },
+      "id": "tqNewQuote000001-node2"
+    },
+    {
+      "name": "寄信給業務",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAILPIT_URL }}/api/v1/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ From: { Email: 'noreply@travel.example', Name: '旅遊報價系統' }, To: [{ Email: $env.SALES_EMAIL }], Subject: '[旅遊報價系統] ' + $json.notification.title, Text: $json.notification.body + String.fromCharCode(10, 10) + '後台：' + $env.SITE_URL + String.fromCharCode(10) + '（模擬信件，由 n8n 自動寄出）' }) }}",
+        "options": {}
+      },
+      "id": "tqNewQuote000001-node3"
+    }
+  ],
+  "connections": {
+    "收到新報價": {
+      "main": [
+        [
+          {
+            "node": "通知中心",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "通知中心": {
+      "main": [
+        [
+          {
+            "node": "只寄新的通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "只寄新的通知": {
+      "main": [
+        [
+          {
+            "node": "寄信給業務",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {}
+}

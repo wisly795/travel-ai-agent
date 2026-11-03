@@ -1,0 +1,42 @@
+# 每次上傳程式或開 Pull Request 時，自動建置全部容器並跑全部模擬測試。
+# 模擬測試用假 AI，不需要 Claude 金鑰、不花 API 額度。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 檢查沒有金鑰或密碼檔被提交
+        run: |
+          test ! -e .env
+          test ! -e 登入資訊.txt
+          ! git grep -nE 'sk-ant-[A-Za-z0-9_-]{20,}' -- . ':!tools/ci_run.sh'
+
+      - name: 建置並執行全部測試
+        run: bash tools/ci_run.sh
+        env:
+          KEEP: "1"
+
+      - name: 失敗時印出容器紀錄
+        if: failure()
+        run: |
+          for s in app erp mcp n8n website; do
+            echo "===== $s ====="; docker logs --tail 80 citest-$s-1 || true
+          done
+
+      - name: 上傳畫面測試截圖
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: ci-shots/
+          if-no-files-found: ignore

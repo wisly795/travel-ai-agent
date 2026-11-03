@@ -1,0 +1,110 @@
+services:
+  db:
+    # PostgreSQL 15 加上 pgvector 向量擴充
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_DB: travel
+      POSTGRES_USER: travel
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?請在 .env 設定 DB_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U travel -d travel"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://travel:${DB_PASSWORD}@db:5432/travel
+      STAFF_TOKEN: ${STAFF_TOKEN:?請在 .env 設定 STAFF_TOKEN}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CHAT_MODEL: ${CHAT_MODEL:-claude-haiku-5-5}
+      DAILY_CHAT_LIMIT: ${DAILY_CHAT_LIMIT:-200}
+      DAILY_COST_LIMIT_USD: ${DAILY_COST_LIMIT_USD:-1.00}
+      MANAGER_TOKEN: ${MANAGER_TOKEN:?請在 .env 設定 MANAGER_TOKEN}
+      PARTNER_DEMO_KEY: ${PARTNER_DEMO_KEY:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      MANAGER_PASSWORD: ${MANAGER_PASSWORD:-}
+      SALES_PASSWORD: ${SALES_PASSWORD:-}
+      PROCUREMENT_MODEL: ${PROCUREMENT_MODEL:-claude-opus-5-5}
+      MANAGER_APPROVAL_THRESHOLD: ${MANAGER_APPROVAL_THRESHOLD:-30000}
+      AUTOMATION_TOKEN: ${AUTOMATION_TOKEN:?請在 .env 設定 AUTOMATION_TOKEN}
+      N8N_WEBHOOK_BASE: http://n8n:5678
+      ERP_URL: http://erp:8000
+      ERP_API_KEY: ${ERP_API_KEY:?請在 .env 設定 ERP_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      erp:
+        condition: service_started
+    ports: ["${APP_PORT:-8100}:8000"]
+    restart: unless-stopped
+  # 模擬系統商的 ERP，另一個獨立服務
+  erp:
+    build:
+      context: .
+      dockerfile: erp/Dockerfile
+    environment:
+      ERP_API_KEY: ${ERP_API_KEY:?請在 .env 設定 ERP_API_KEY}
+    volumes:
+      - erpdata:/data
+    ports: ["${ERP_PORT:-8101}:8000"]
+    restart: unless-stopped
+  # 模擬官網：另一套系統，由後端帶 API 金鑰呼叫合作夥伴 API
+  website:
+    build:
+      context: .
+      dockerfile: website/Dockerfile
+    environment:
+      PARTNER_API: http://app:8000/partner
+      PARTNER_KEY: ${PARTNER_DEMO_KEY:-}
+    depends_on: [app]
+    ports: ["${WEBSITE_PORT:-8103}:8000"]
+    restart: unless-stopped
+  # MCP 伺服器：讓 Claude Desktop／Claude Code 直接操作本系統，只開在本機
+  mcp:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    environment:
+      TRAVEL_API: http://app:8000
+    depends_on: [app]
+    ports: ["127.0.0.1:${MCP_PORT:-8102}:8000"]
+    restart: unless-stopped
+  # 模擬信箱：n8n 寄的信都會到這裡（不會真的寄出去），收件畫面只開在本機
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    ports: ["127.0.0.1:${MAIL_UI_PORT:-8025}:8025"]
+    restart: unless-stopped
+  # n8n 自動化：通知、每日報表、採購提醒、同步失敗重試。編輯畫面只開在本機。
+  n8n:
+    image: n8nio/n8n:2.45.7
+    entrypoint: ["/bin/sh", "/automation/start-n8n.sh"]
+    environment:
+      GENERIC_TIMEZONE: Asia/Taipei
+      TZ: Asia/Taipei
+      APP_URL: http://app:8000
+      AUTOMATION_TOKEN: ${AUTOMATION_TOKEN:?請在 .env 設定 AUTOMATION_TOKEN}
+      MAILPIT_URL: http://mailpit:8025
+      SITE_URL: http://localhost:${APP_PORT:-8100}
+      SALES_EMAIL: ${SALES_EMAIL:-sales@travel.example}
+      MANAGER_EMAIL: ${MANAGER_EMAIL:-manager@travel.example}
+      IT_EMAIL: ${IT_EMAIL:-it@travel.example}
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      N8N_SECURE_COOKIE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+    volumes:
+      - n8ndata:/home/node/.n8n
+      - ./automation:/automation:ro
+    ports: ["127.0.0.1:${N8N_PORT:-5678}:5678"]
+    restart: unless-stopped
+volumes:
+  dbdata:
+  erpdata:
+  n8ndata:

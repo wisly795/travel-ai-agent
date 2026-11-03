@@ -1,0 +1,253 @@
+==== 旅遊 AI 客服與報價系統 ====
+已建立 .env 與 登入資訊.txt
+建置中，第一次需要下載，約 5 到 10 分鐘，請保持網路連線……
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.89kB 0.0s done
+#1 DONE 0.0s
+一般建置失敗（資料夾路徑含中文時會發生），改用相容模式建置……
+Sending build context to Docker daemon  479.2kB
+Step 1/11 : FROM python:3.11-slim
+ ---> db20d8506e2f
+Step 2/11 : WORKDIR /code
+ ---> Using cache
+ ---> 4fa737d7d370
+Step 3/11 : COPY backend/requirements.txt .
+ ---> Using cache
+ ---> 2fa97669c412
+Step 4/11 : RUN pip install --no-cache-dir -r requirements.txt
+ ---> Using cache
+ ---> 5725a7ab39bb
+Step 5/11 : ENV MODEL_DIR=/models HF_HUB_DISABLE_TELEMETRY=1
+ ---> Using cache
+ ---> 495d4294e813
+Step 6/11 : RUN python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2', cache_dir='/models')"
+ ---> Using cache
+ ---> f9591d9c72bf
+Step 7/11 : COPY backend/app /code/app
+ ---> 7feb57a234f8
+Step 8/11 : COPY frontend /code/frontend
+ ---> 49cab602e978
+Step 9/11 : COPY data/policies /code/data/policies
+ ---> 7d16ebe26236
+Step 10/11 : EXPOSE 8000
+ ---> Running in ae54bc41f0bd
+ ---> Removed intermediate container ae54bc41f0bd
+ ---> f61a7969801f
+Step 11/11 : CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ ---> Running in 0c1d3c3b3072
+ ---> Removed intermediate container 0c1d3c3b3072
+ ---> c34a26b308b7
+Successfully built c34a26b308b7
+Successfully tagged travelai-app:latest
+Sending build context to Docker daemon  479.2kB
+Step 1/6 : FROM python:3.11-slim
+ ---> db20d8506e2f
+Step 2/6 : WORKDIR /code
+ ---> Using cache
+ ---> 4fa737d7d370
+Step 3/6 : RUN pip install --no-cache-dir fastapi==0.111.0 uvicorn==0.29.0
+ ---> Using cache
+ ---> 1446213d64f5
+Step 4/6 : COPY erp/app.py /code/app.py
+ ---> 14c7194007d0
+Step 5/6 : EXPOSE 8000
+ ---> Running in d0e567cca08c
+ ---> Removed intermediate container d0e567cca08c
+ ---> ea5903c855bb
+Step 6/6 : CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+ ---> Running in a718307ddf0f
+ ---> Removed intermediate container a718307ddf0f
+ ---> 9d16747cbda5
+Successfully built 9d16747cbda5
+Successfully tagged travelai-erp:latest
+Sending build context to Docker daemon  479.2kB
+Step 1/6 : FROM python:3.11-slim
+ ---> db20d8506e2f
+Step 2/6 : WORKDIR /code
+ ---> Using cache
+ ---> 4fa737d7d370
+Step 3/6 : RUN pip install --no-cache-dir mcp==1.30.0
+ ---> Using cache
+ ---> 539080bee99f
+Step 4/6 : COPY mcp/server.py /code/server.py
+ ---> 278953671736
+Step 5/6 : EXPOSE 8000
+ ---> Running in 0b2a3bd2b6ee
+ ---> Removed intermediate container 0b2a3bd2b6ee
+ ---> 8a2a5432cd61
+Step 6/6 : CMD ["python", "server.py", "http"]
+ ---> Running in 0bddd4617c9a
+ ---> Removed intermediate container 0bddd4617c9a
+ ---> ef81e2c46678
+Successfully built ef81e2c46678
+Successfully tagged travelai-mcp:latest
+Sending build context to Docker daemon  479.2kB
+Step 1/6 : FROM python:3.11-slim
+ ---> db20d8506e2f
+Step 2/6 : WORKDIR /code
+ ---> Using cache
+ ---> 4fa737d7d370
+Step 3/6 : RUN pip install --no-cache-dir fastapi==0.111.0 uvicorn==0.29.0 python-multipart==0.0.9
+ ---> Running in 18a74121608a
+Collecting fastapi==0.111.0
+  Downloading fastapi-0.111.0-py3-none-any.whl.metadata (25 kB)
+Collecting uvicorn==0.29.0
+  Downloading uvicorn-0.29.0-py3-none-any.whl.metadata (6.3 kB)
+Collecting python-multipart==0.0.9
+  Downloading python_multipart-0.0.9-py3-none-any.whl.metadata (2.5 kB)
+Collecting starlette<0.38.0,>=0.37.2 (from fastapi==0.111.0)
+  Downloading starlette-0.37.2-py3-none-any.whl.metadata (5.9 kB)
+Collecting pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4 (from fastapi==0.111.0)
+  Downloading pydantic-2.14.2-py3-none-any.whl.metadata (137 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 137.6/137.6 kB 1.1 MB/s eta 0:00:00
+Collecting typing-extensions>=4.8.0 (from fastapi==0.111.0)
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting fastapi-cli>=0.0.2 (from fastapi==0.111.0)
+  Downloading fastapi_cli-0.0.32-py3-none-any.whl.metadata (6.7 kB)
+Collecting httpx>=0.23.0 (from fastapi==0.111.0)
+  Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Collecting jinja2>=2.11.2 (from fastapi==0.111.0)
+  Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting ujson!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0,>=4.0.1 (from fastapi==0.111.0)
+  Downloading ujson-6.1.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (10.0 kB)
+Collecting orjson>=3.2.1 (from fastapi==0.111.0)
+  Downloading orjson-3.13.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (42 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.2/42.2 kB 26.3 MB/s eta 0:00:00
+Collecting email_validator>=2.0.0 (from fastapi==0.111.0)
+  Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+Collecting click>=7.0 (from uvicorn==0.29.0)
+  Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting h11>=0.8 (from uvicorn==0.29.0)
+  Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting dnspython>=2.0.0 (from email_validator>=2.0.0->fastapi==0.111.0)
+  Downloading dnspython-2.9.1-py3-none-any.whl.metadata (5.8 kB)
+Collecting idna>=2.0.0 (from email_validator>=2.0.0->fastapi==0.111.0)
+  Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+Collecting typer>=0.16.0 (from fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading typer-0.27.3-py3-none-any.whl.metadata (16 kB)
+Collecting rich-toolkit>=0.14.8 (from fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading rich_toolkit-0.20.6-py3-none-any.whl.metadata (3.0 kB)
+Collecting anyio (from httpx>=0.23.0->fastapi==0.111.0)
+  Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+Collecting certifi (from httpx>=0.23.0->fastapi==0.111.0)
+  Downloading certifi-2026.10.23-py3-none-any.whl.metadata (2.5 kB)
+Collecting httpcore==1.* (from httpx>=0.23.0->fastapi==0.111.0)
+  Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Collecting MarkupSafe>=2.0 (from jinja2>=2.11.2->fastapi==0.111.0)
+  Downloading markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Collecting annotated-types>=0.6.0 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.111.0)
+  Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.50.2 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.111.0)
+  Downloading pydantic_core-2.50.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.5 kB)
+Collecting typing-inspection>=0.4.4 (from pydantic!=1.8,!=1.8.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0,>=1.7.4->fastapi==0.111.0)
+  Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+Collecting httptools>=0.5.0 (from uvicorn[standard]>=0.12.0->fastapi==0.111.0)
+  Downloading httptools-0.9.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (3.5 kB)
+Collecting python-dotenv>=0.13 (from uvicorn[standard]>=0.12.0->fastapi==0.111.0)
+  Downloading python_dotenv-1.2.4-py3-none-any.whl.metadata (29 kB)
+Collecting pyyaml>=5.1 (from uvicorn[standard]>=0.12.0->fastapi==0.111.0)
+  Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting uvloop!=0.15.0,!=0.15.1,>=0.14.0 (from uvicorn[standard]>=0.12.0->fastapi==0.111.0)
+  Downloading uvloop-0.23.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (5.1 kB)
+Collecting watchfiles>=0.13 (from uvicorn[standard]>=0.12.0->fastapi==0.111.0)
+  Downloading watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+Collecting websockets>=10.4 (from uvicorn[standard]>=0.12.0->fastapi==0.111.0)
+  Downloading websockets-17.4-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
+Collecting rich>=13.7.1 (from rich-toolkit>=0.14.8->fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+Collecting shellingham>=1.3.0 (from typer>=0.16.0->fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+Collecting annotated-doc>=0.0.2 (from typer>=0.16.0->fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+Collecting markdown-it-py>=2.2.0 (from rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.7.1->rich-toolkit>=0.14.8->fastapi-cli>=0.0.2->fastapi==0.111.0)
+  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Downloading fastapi-0.111.0-py3-none-any.whl (91 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 92.0/92.0 kB 692.1 kB/s eta 0:00:00
+Downloading uvicorn-0.29.0-py3-none-any.whl (60 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.8/60.8 kB 10.2 MB/s eta 0:00:00
+Downloading python_multipart-0.0.9-py3-none-any.whl (22 kB)
+Downloading click-8.5.0-py3-none-any.whl (125 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 25.1 MB/s eta 0:00:00
+Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+Downloading fastapi_cli-0.0.32-py3-none-any.whl (14 kB)
+Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 507.7 kB/s eta 0:00:00
+Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 620.7 kB/s eta 0:00:00
+Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 7.7 MB/s eta 0:00:00
+Downloading orjson-3.13.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (130 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 130.5/130.5 kB 6.0 MB/s eta 0:00:00
+Downloading pydantic-2.14.2-py3-none-any.whl (490 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 490.4/490.4 kB 3.7 MB/s eta 0:00:00
+Downloading pydantic_core-2.50.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 2.4 MB/s eta 0:00:00
+Downloading starlette-0.37.2-py3-none-any.whl (71 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.9/71.9 kB 5.5 MB/s eta 0:00:00
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 19.3 MB/s eta 0:00:00
+Downloading ujson-6.1.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (56 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 56.2/56.2 kB 24.9 MB/s eta 0:00:00
+Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.5/134.5 kB 1.1 MB/s eta 0:00:00
+Downloading dnspython-2.9.1-py3-none-any.whl (360 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 360.4/360.4 kB 3.0 MB/s eta 0:00:00
+Downloading httptools-0.9.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (499 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 499.1/499.1 kB 3.5 MB/s eta 0:00:00
+Downloading idna-3.20-py3-none-any.whl (69 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 28.6 MB/s eta 0:00:00
+Downloading markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 3.4 MB/s eta 0:00:00
+Downloading rich_toolkit-0.20.6-py3-none-any.whl (39 kB)
+Downloading typer-0.27.3-py3-none-any.whl (123 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 123.3/123.3 kB 6.5 MB/s eta 0:00:00
+Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+Downloading uvloop-0.23.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.0/4.0 MB 2.1 MB/s eta 0:00:00
+Downloading watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (458 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 458.4/458.4 kB 2.0 MB/s eta 0:00:00
+Downloading websockets-17.4-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (226 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 226.0/226.0 kB 1.9 MB/s eta 0:00:00
+Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.1/135.1 kB 1.1 MB/s eta 0:00:00
+Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 310.7/310.7 kB 2.4 MB/s eta 0:00:00
+Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 91.7/91.7 kB 744.9 kB/s eta 0:00:00
+Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 2.2 MB/s eta 0:00:00
+Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Installing collected packages: websockets, uvloop, ujson, typing-extensions, shellingham, pyyaml, python-multipart, python-dotenv, pygments, orjson, mdurl, MarkupSafe, idna, httptools, h11, dnspython, click, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, pydantic-core, markdown-it-py, jinja2, httpcore, email_validator, anyio, watchfiles, starlette, rich, pydantic, httpx, typer, rich-toolkit, fastapi-cli, fastapi
+[91mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+[0mSuccessfully installed MarkupSafe-3.0.4 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.16.0 certifi-2026.10.23 click-8.5.0 dnspython-2.9.1 email_validator-2.3.0 fastapi-0.111.0 fastapi-cli-0.0.32 h11-0.16.0 httpcore-1.0.9 httptools-0.9.0 httpx-0.28.1 idna-3.20 jinja2-3.1.6 markdown-it-py-4.2.0 mdurl-0.1.2 orjson-3.13.0 pydantic-2.14.2 pydantic-core-2.50.2 pygments-2.21.0 python-dotenv-1.2.4 python-multipart-0.0.9 pyyaml-6.0.3 rich-15.0.0 rich-toolkit-0.20.6 shellingham-1.5.4 starlette-0.37.2 typer-0.27.3 typing-extensions-4.16.0 typing-inspection-0.4.4 ujson-6.1.0 uvicorn-0.29.0 uvloop-0.23.0 watchfiles-1.3.0 websockets-17.4
+[91m
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: pip install --upgrade pip
+[0m ---> Removed intermediate container 18a74121608a
+ ---> 19c4bb4bbe52
+Step 4/6 : COPY website/app.py /code/app.py
+ ---> ad06a425332b
+Step 5/6 : EXPOSE 8000
+ ---> Running in 55a7eec51186
+ ---> Removed intermediate container 55a7eec51186
+ ---> d4d6c05d6e8d
+Step 6/6 : CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+ ---> Running in 73ff5285579f
+ ---> Removed intermediate container 73ff5285579f
+ ---> 8dd49ef0d494
+Successfully built 8dd49ef0d494
+Successfully tagged travelai-website:latest
+啟動中……
+等待系統就緒……
+完成！登入資訊在「登入資訊.txt」。
+Press any key to continue . . . 

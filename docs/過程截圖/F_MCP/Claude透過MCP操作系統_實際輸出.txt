@@ -1,0 +1,22 @@
+從 MCP 取得的工具： ['list_destinations', 'search_packages', 'list_hotels', 'calculate_quote', 'search_policy', 'calculate_refund', 'create_quote']
+
+問題： 我們 2 個人想去京都 5 天，住最便宜的飯店，總價多少？另外如果出發前 10 天取消，會扣多少比例？請用繁體中文簡短回答，並附上規定出處。
+
+→ Claude 呼叫 MCP 工具 search_packages：{'people': 2, 'destination': '京都'}
+
+→ Claude 呼叫 MCP 工具 list_hotels：{'destination': '京都'}
+
+→ Claude 呼叫 MCP 工具 search_policy：{'question': '出發前取消旅遊的取消費用比例'}
+
+→ Claude 呼叫 MCP 工具 calculate_quote：{'package_id': 3, 'hotel_id': 3, 'people': 2}
+
+→ Claude 呼叫 MCP 工具 calculate_refund：{'total_price': 82400, 'days_before_departure': 10}
+
+Claude： **總價：新台幣 82,400 元**（2 人）
+- 行程「古都散步 5 日」：65,600 元（每人 32,800 元）
+- 住宿「町屋旅宿」和室雙人房：16,800 元（1 間房 × 4 晚 × 4,200 元）
+
+**出發前 10 天取消：扣 30%**，即扣 24,720 元，退還 57,680 元。
+出處：取消與退費規定 第3條（出發前 8 至 20 天取消，扣團費 30%）。
+
+注意：5 日行程住 4 晚，這是系統的計算方式。另外，報名時需先付團費 20% 作為訂金（第2條）。

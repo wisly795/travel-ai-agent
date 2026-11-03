@@ -1,0 +1,30 @@
+"""打包安裝包 zip：只放系統執行需要的檔案，絕對不放 .env、登入資訊和截圖。
+
+用法（在專案資料夾）：docker run --rm -v <專案>:/p python:3.11-slim python /p/tools/build_installer.py
+"""
+import zipfile
+from datetime import date
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+OUT = ROOT / "dist" / f"旅遊AI客服系統_安裝包_{date.today():%Y%m%d}.zip"
+INCLUDE = ["backend", "frontend", "db", "data", "erp", "mcp", "website", "automation", "tools",
+           "docker-compose.yml", ".env.example", "Start.bat", "Stop.bat", "setup_env.ps1",
+           "README.md", ".gitignore", ".gitattributes",
+           "docs/交接文件.md", "docs/MCP接入說明.md", "docs/系統規格.md", "docs/成品規劃.md"]
+NEVER = {".env", "登入資訊.txt"}
+
+OUT.parent.mkdir(exist_ok=True)
+files = []
+for item in INCLUDE:
+    path = ROOT / item
+    files += [p for p in path.rglob("*") if p.is_file()] if path.is_dir() else [path]
+files = [p for p in files if p.name not in NEVER and "__pycache__" not in p.parts and p.suffix != ".pyc"]
+
+with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as archive:
+    for path in sorted(files):
+        archive.write(path, "旅遊AI客服系統/" + path.relative_to(ROOT).as_posix())
+
+names = zipfile.ZipFile(OUT).namelist()
+assert not any(Path(n).name in NEVER for n in names), "安裝包裡不能有 .env 或登入資訊"
+print(f"{OUT.name}：{len(names)} 個檔案，{OUT.stat().st_size / 1024:.0f} KB")
