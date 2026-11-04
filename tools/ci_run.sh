@@ -58,16 +58,26 @@ sleep 5
 docker cp tools/. "$P-app-1:/code/"
 FAILED=()
 GRAFANA_PASSWORD=$(grep '^GRAFANA_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)
+SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
+echo "## 測試結果" >> "$SUMMARY"
 for t in api_test auth_test partner_test agent_test multi_agent_test procurement_test automation_test eval_test rag_eval monitor_test; do
   echo "::group::$t"
-  if docker exec -e GRAFANA_PASSWORD="$GRAFANA_PASSWORD" "$P-app-1" python "$t.py"; then echo "✔ $t"; else echo "✘ $t"; FAILED+=("$t"); fi
+  if docker exec -e GRAFANA_PASSWORD="$GRAFANA_PASSWORD" "$P-app-1" python "$t.py" > "/tmp/ci_$t.log" 2>&1; then
+    echo "✔ $t"; echo "- ✔ $t：$(tail -n 1 /tmp/ci_$t.log)" >> "$SUMMARY"
+  else
+    echo "✘ $t"; FAILED+=("$t")
+    # 失敗的項目寫進 GitHub 的執行摘要，不用登入下載紀錄也看得到原因
+    { echo "- ✘ $t"; echo '```'; grep -E "^FAIL|Error|Traceback" "/tmp/ci_$t.log" | head -20; tail -n 3 "/tmp/ci_$t.log"; echo '```'; } >> "$SUMMARY"
+  fi
+  cat "/tmp/ci_$t.log"
   echo "::endgroup::"
 done
 
 # 4. MCP 測試（在 mcp 容器裡執行）
 echo "::group::mcp_test"
 docker cp tools/mcp_test.py "$P-mcp-1:/code/"
-if docker exec "$P-mcp-1" python mcp_test.py; then echo "✔ mcp_test"; else FAILED+=("mcp_test"); fi
+if docker exec "$P-mcp-1" python mcp_test.py; then echo "✔ mcp_test"; echo "- ✔ mcp_test" >> "$SUMMARY"
+else FAILED+=("mcp_test"); echo "- ✘ mcp_test" >> "$SUMMARY"; fi
 echo "::endgroup::"
 
 # 5. 畫面測試（Chromium 瀏覽器，截圖放 ci-shots/）
@@ -77,9 +87,12 @@ mkdir -p ci-shots
 SALES_PASSWORD=$(grep '^SALES_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)
 if MSYS_NO_PATHCONV=1 docker run --rm --network "${P}_default" \
     -e APP_URL="http://$P-app-1:8000/" -e SALES_PASSWORD="$SALES_PASSWORD" \
-    -v "$PWD/tools:/t" -v "$PWD/ci-shots:/shots" travelquote-uitest python /t/ui_test.py; then
-  echo "✔ ui_test"
-else FAILED+=("ui_test"); fi
+    -v "$PWD/tools:/t" -v "$PWD/ci-shots:/shots" travelquote-uitest python /t/ui_test.py > /tmp/ci_ui_test.log 2>&1; then
+  echo "✔ ui_test"; echo "- ✔ ui_test（瀏覽器畫面測試）" >> "$SUMMARY"
+else
+  FAILED+=("ui_test"); { echo "- ✘ ui_test"; echo '```'; tail -n 15 /tmp/ci_ui_test.log; echo '```'; } >> "$SUMMARY"
+fi
+cat /tmp/ci_ui_test.log
 echo "::endgroup::"
 
 # 6. 結果
