@@ -39,6 +39,7 @@ services:
       ERP_API_KEY: ${ERP_API_KEY:?請在 .env 設定 ERP_API_KEY}
       METRICS_TOKEN: ${METRICS_TOKEN:-}
       RAG_MODEL: ${RAG_MODEL:-finetuned}
+      OPENDATA_AUTO_IMPORT: ${OPENDATA_AUTO_IMPORT:-1}
     depends_on:
       db:
         condition: service_healthy

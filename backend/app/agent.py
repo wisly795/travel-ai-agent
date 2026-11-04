@@ -4,11 +4,12 @@ import os
 import uuid
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 import anthropic
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
-from . import quotes, rag
+from . import opendata, quotes, rag
 from .db import connect, query
 
 CHAT_MODEL = os.environ.get("CHAT_MODEL", "claude-haiku-5-5")
@@ -37,7 +38,8 @@ SYSTEM = """你是「旅遊行程報價系統」的線上客服。系統內所�
 8. 稱呼客人用「您」，或用客人提供的全名加「您好」，問候只說一次。不要從姓名推測性別，不使用先生、小姐、女士等稱謂。
 9. 客人沒說人數時，可以先用 1 人查詢，讓客人知道有沒有符合預算的行程，再詢問實際人數。
 10. 用繁體中文回答，簡潔親切。不要使用 Markdown 符號或表格，條列請用「・」，金額寫成 NT$ 85,200。
-11. 計算退費時，客人有給出發日期就把 departure_date 交給 calculate_refund，由系統算還有幾天，不要自己數天數。"""
+11. 計算退費時，客人有給出發日期就把 departure_date 交給 calculate_refund，由系統算還有幾天，不要自己數天數。
+12. 客人問台灣各地的景點或住宿時，用 search_local_info 查交通部觀光署開放資料，回答時註明「資料來源：交通部觀光署」。旅宿的房價區間是業者向官方登記的參考價，不是本系統的報價，不可拿來算報價或承諾價格；報價一律用本系統的行程與飯店。"""
 
 def system_prompt():
     """規則加上今天日期，AI 才能把「下個月 15 號」換算成日期。日期放最後，前面的規則仍可快取。"""
@@ -124,6 +126,19 @@ TOOLS = [
         },
     },
     {
+        "name": "search_local_info",
+        "description": "查台灣各縣市的景點或住宿（交通部觀光署開放資料，真實資料）。只有台灣的資料；住宿房價是業者登記的參考區間，不是報價。",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "kind": {"type": "string", "enum": ["attractions", "hotels"], "description": "attractions＝景點，hotels＝住宿"},
+                "city": {"type": "string", "description": "縣市全名，例如 花蓮縣、臺東縣、臺南市（臺用正體）"},
+                "keyword": {"type": "string", "description": "關鍵字，例如 溫泉、海、步道；不限則省略"},
+            },
+            "required": ["kind", "city"],
+        },
+    },
+    {
         "name": "request_human",
         "description": "轉給專人處理，例如規定問題、客訴、特殊需求，或你無法回答的問題。",
         "input_schema": {
@@ -172,6 +187,42 @@ class RefundInput(BaseModel):
     total_price: int = Field(gt=0, le=10_000_000)
     days_before_departure: int | None = Field(default=None, ge=0, le=365)
     departure_date: date | None = None
+
+
+class LocalInfoInput(BaseModel):
+    kind: Literal["attractions", "hotels"]
+    city: str = Field(min_length=2, max_length=10)
+    keyword: str | None = Field(default=None, max_length=30)
+
+    @field_validator("city")
+    @classmethod
+    def normalize_city(cls, value):
+        # 客人常寫「台東」「花蓮」，資料用「臺東縣」「花蓮縣」
+        value = value.strip().replace("台", "臺")
+        if not value.endswith(("縣", "市")):
+            value = CITY_ALIASES.get(value, value)
+        return value
+
+
+CITY_ALIASES = {"臺北": "臺北市", "新北": "新北市", "桃園": "桃園市", "臺中": "臺中市", "臺南": "臺南市", "高雄": "高雄市",
+                "基隆": "基隆市", "新竹": "新竹縣", "苗栗": "苗栗縣", "彰化": "彰化縣", "南投": "南投縣", "雲林": "雲林縣",
+                "嘉義": "嘉義縣", "屏東": "屏東縣", "宜蘭": "宜蘭縣", "花蓮": "花蓮縣", "臺東": "臺東縣", "澎湖": "澎湖縣",
+                "金門": "金門縣", "馬祖": "連江縣", "墾丁": "屏東縣"}
+
+
+def local_info(args):
+    """只給 AI 需要的欄位，避免把整段介紹塞進對話（省 token）。"""
+    result = opendata.search(args.kind, args.city, args.keyword, limit=5)
+    items = []
+    for item in result["items"]:
+        brief = {"name": item["name"], "town": item["town"], "type": "、".join(item["class_names"]),
+                 "intro": item["description"][:80]}
+        if args.kind == "hotels":
+            brief["registered_price_range"] = (f"{item['lowest_price']}～{item['ceiling_price']}"
+                                               if item.get("lowest_price") else "未登記")
+        items.append(brief)
+    return {"city": args.city, "total": result["total"], "items": items, "source": result["source"],
+            "note": "房價為業者登記的參考區間，不是本系統報價" if args.kind == "hotels" else None}
 
 
 class HumanInput(BaseModel):
@@ -226,6 +277,8 @@ def run_tool(name, raw_input, conversation_id):
         if name == "calculate_refund":
             args = RefundInput(**raw_input)
             return quotes.calculate_refund(args.total_price, args.days_before_departure, args.departure_date), False
+        if name == "search_local_info":
+            return local_info(LocalInfoInput(**raw_input)), False
         if name == "request_human":
             reason = HumanInput(**raw_input).reason
             row = query(

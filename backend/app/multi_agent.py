@@ -48,11 +48,12 @@ ROUTER_SYSTEM = """你是旅遊客服的分流員，只負責把客人這句話�
 TEAM_RULE = ("你的回答會和其他專員的回答直接合併成一則訊息給客人。只寫你負責的部分；"
              "其他部分當作不存在：不要提到其他專員、不要叫客人去問別人、不要為那些部分建立轉接單，也不要重複打招呼。")
 ROLES = {
-    "quote": ("報價專員", ["list_destinations", "search_packages", "list_hotels", "calculate_quote", "create_quote", "request_human"],
+    "quote": ("報價專員", ["list_destinations", "search_packages", "list_hotels", "calculate_quote", "create_quote",
+                       "search_local_info", "request_human"],
               "你是報價專員，負責行程、飯店與報價：查詢、用 calculate_quote 算出明細並告訴客人金額。" + TEAM_RULE),
     "policy": ("規定專員", ["search_policy", "calculate_refund", "request_human"],
                "你是規定專員，負責旅遊規定與退費計算：用 search_policy 查條文並附出處。" + TEAM_RULE),
-    "reception": ("接待專員", ["list_destinations", "request_human"],
+    "reception": ("接待專員", ["list_destinations", "search_local_info", "request_human"],
                   "你是接待專員，負責打招呼、說明能幫什麼忙、處理客訴與轉接真人。和旅遊無關的問題禮貌說明只能協助旅遊相關事項。"),
 }
 ORDER = ["quote", "policy", "reception"]

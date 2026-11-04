@@ -254,3 +254,37 @@ CREATE INDEX IF NOT EXISTS idx_ai_tool_calls_turn ON ai_tool_calls(turn_id);
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'single';
 ALTER TABLE ai_turns ADD COLUMN IF NOT EXISTS agent_path JSONB;
 ALTER TABLE ai_tool_calls ADD COLUMN IF NOT EXISTS agent TEXT;
+
+-- 政府開放資料（交通部觀光署）：整理後的內容放 data，hash 用來判斷有沒有變；官方下架的標 active = false
+CREATE TABLE IF NOT EXISTS od_attractions (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL DEFAULT '',
+    data JSONB NOT NULL,
+    hash TEXT NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT true,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS od_hotels (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL DEFAULT '',
+    data JSONB NOT NULL,
+    hash TEXT NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT true,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_od_attractions_city ON od_attractions(city) WHERE active;
+CREATE INDEX IF NOT EXISTS idx_od_hotels_city ON od_hotels(city) WHERE active;
+-- 每次匯入一筆：什麼時候、誰觸發、官方資料時間、新增／更新／不變／下架幾筆、失敗原因
+CREATE TABLE IF NOT EXISTS od_imports (
+    id SERIAL PRIMARY KEY,
+    dataset TEXT NOT NULL,
+    trigger TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT '執行中',
+    source_time TEXT,
+    total INTEGER, inserted INTEGER, updated INTEGER, unchanged INTEGER, removed INTEGER,
+    error TEXT,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    finished_at TIMESTAMPTZ
+);

@@ -10,11 +10,13 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
+from fastapi import Path as PathParam
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
-from . import agent, auth, automation, dashboard, erp, evals, metrics, multi_agent, partner, procurement, quotes, rag
+from . import (agent, auth, automation, dashboard, erp, evals, metrics, multi_agent, opendata, partner, procurement,
+               quotes, rag)
 from .db import migrate, query
 
 STAFF_TOKEN = os.environ["STAFF_TOKEN"]
@@ -29,6 +31,7 @@ async def lifespan(app):
     auth.bootstrap_users()
     partner.bootstrap_demo_partner()
     rag.sync()
+    opendata.bootstrap()
     yield
 
 
@@ -269,6 +272,42 @@ def create_quote(request: QuoteRequest):
 @app.get("/api/policies")
 def policies():
     return rag.list_policies()
+
+
+@app.get("/api/explore/cities")
+def explore_cities():
+    """各縣市有幾個景點、幾家旅宿（政府開放資料）。"""
+    return {"cities": opendata.cities(), "source": opendata.SOURCE, "license": opendata.LICENSE}
+
+
+@app.get("/api/explore/{dataset}")
+def explore_search(dataset: Literal["attractions", "hotels"], city: str | None = Query(default=None, max_length=10),
+                   q: str | None = Query(default=None, max_length=50), max_price: int | None = Query(default=None, gt=0),
+                   with_image: bool = False, limit: int = Query(default=12, ge=1, le=50), offset: int = Query(default=0, ge=0)):
+    """搜尋景點或旅宿（政府開放資料；旅宿價格是業者登記的區間，僅供參考，不是報價）。"""
+    return opendata.search(dataset, city, q, max_price, with_image, limit, offset)
+
+
+@app.get("/api/explore/{dataset}/{item_id}")
+def explore_get(dataset: Literal["attractions", "hotels"], item_id: str = PathParam(max_length=80)):
+    item = opendata.get(dataset, item_id)
+    if not item:
+        raise HTTPException(404, "找不到這筆資料")
+    return {**item, "source": opendata.SOURCE, "license": opendata.LICENSE}
+
+
+@app.post("/api/admin/opendata/import", status_code=202)
+def opendata_import(who: dict = Depends(require_automation)):
+    """重新匯入政府開放資料（管理員或 n8n 每日排程）。在背景執行，約 1 分鐘。"""
+    if who["role"] not in ("管理員", "自動化"):
+        raise HTTPException(403, "只有管理員或自動化流程可以匯入")
+    opendata.import_all_background(who["name"])
+    return {"started": True}
+
+
+@app.get("/api/admin/opendata/imports", dependencies=[Depends(require_staff)])
+def opendata_imports():
+    return opendata.imports()
 
 
 @app.get("/api/policies/model")
