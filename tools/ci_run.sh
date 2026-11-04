@@ -69,6 +69,9 @@ for t in api_test auth_test partner_test agent_test multi_agent_test procurement
     # 失敗原因寫進 GitHub 的執行摘要和標註（標註不用登入就看得到）
     { echo "- ✘ $t"; echo '```'; grep -E "^FAIL|Error|Traceback" "/tmp/ci_$t.log" | head -20; tail -n 3 "/tmp/ci_$t.log"; echo '```'; } >> "$SUMMARY"
     echo "::error title=$t 失敗::$( { grep -E "^FAIL|Error" "/tmp/ci_$t.log" | head -8; tail -n 1 "/tmp/ci_$t.log"; } | sed ':a;N;$!ba;s/\n/%0A/g')"
+    if [ "$t" = monitor_test ]; then
+      echo "::error title=grafana 紀錄::$(docker logs "$P-grafana-1" 2>&1 | grep -iE "error|fail|provision|dashboard" | tail -n 8 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+    fi
   fi
   cat "/tmp/ci_$t.log"
   echo "::endgroup::"

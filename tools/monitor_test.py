@@ -41,7 +41,8 @@ get("http://localhost:8000/no-such-page-12345")
 status, body = get("http://localhost:8000/metrics", {"Authorization": f"Bearer {TOKEN}"})
 check("帶權杖可以看到指標", status == 200)
 check("請求數依路由樣板記錄（不是實際網址）",
-      'route="/api/quotes/{quote_id}/events"' in body and "999999" not in body)
+      'route="/api/quotes/{quote_id}/events"' in body and "999999" not in body,
+      [line for line in body.splitlines() if "quotes" in line or "999999" in line][:6])
 check("不存在的網址歸到「其他」，不會讓指標無限增加", 'route="其他"' in body and "no-such-page" not in body)
 for name in ("travel_http_request_seconds_bucket", "travel_ai_cost_today_usd", "travel_ai_cost_limit_usd",
              "travel_erp_sync_failed", "travel_purchase_orders_pending", "travel_db_up 1.0"):
@@ -76,7 +77,8 @@ for _ in range(30):
     if status == 200:
         break
     time.sleep(2)
-check("監控儀表板自動建立", status == 200 and json.loads(raw)["dashboard"]["title"] == "旅遊系統監控", status)
+found = get("http://grafana:3000/api/search", auth)[1][:300] if status != 200 else ""
+check("監控儀表板自動建立", status == 200 and json.loads(raw)["dashboard"]["title"] == "旅遊系統監控", f"{status} {found}")
 status, _ = get("http://grafana:3000/api/dashboards/uid/travel-ops")
 check("沒登入看不到 Grafana 儀表板", status == 401)
 status, raw = get("http://grafana:3000/api/datasources/uid/prometheus/health", auth)
