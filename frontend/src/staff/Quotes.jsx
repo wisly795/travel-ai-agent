@@ -34,15 +34,17 @@ export default function Quotes({ hidden, staffApi, action, version, session, onE
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>編號</th><th>客人</th><th>行程</th><th>飯店</th><th>人數</th><th>出發日</th><th>總價</th><th>來源</th><th>狀態</th><th>ERP</th><th>操作</th></tr>
+            <tr><th>編號</th><th>客人</th><th>行程（飯店・人數）</th><th>出發日</th><th>總價</th><th>來源</th><th>狀態（ERP）</th><th>操作</th></tr>
           </thead>
           <tbody id="quote-rows">
             {quotes.map((q) => (
               <tr key={q.id}>
-                <td>{q.id}</td><td>{q.customer_name}</td><td>{q.package}</td><td>{q.hotel}</td><td>{q.people}</td>
+                <td>{q.id}</td><td>{q.customer_name}</td>
+                {/* 行程、飯店、人數合成一欄，ERP 放在狀態下面：一般螢幕不用左右捲動就看得到編號到操作 */}
+                <td>{q.package}<small className="cell-note">{`${q.hotel}・${q.people} 人`}</small></td>
                 <td>{q.departure_date || "—"}</td><td>{money(q.total_price)}</td>
-                <td>{SOURCE_LABELS[q.source] || q.source}</td><td>{q.status}</td>
-                <td>{q.erp_status ? `${q.erp_status}${q.erp_order_no ? `（${q.erp_order_no}）` : ""}` : "—"}</td>
+                <td>{SOURCE_LABELS[q.source] || q.source}</td>
+                <td>{q.status}{q.erp_status && <small className="cell-note">{`ERP ${q.erp_status}${q.erp_order_no ? `（${q.erp_order_no}）` : ""}`}</small>}</td>
                 <td>
                   {q.status === "已報價" && <button type="button" className="small-btn" onClick={() => setStatus(q.id, "成交")}>成交</button>}
                   {q.status !== "取消" && <button type="button" className="small-btn ghost" onClick={() => setStatus(q.id, "取消")}>取消</button>}

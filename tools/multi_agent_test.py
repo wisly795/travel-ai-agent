@@ -115,6 +115,36 @@ check("每位專員拿到分給自己的問題，並附客人原話供核對數�
 check("第二輪看得到上一輪紀錄（含工具摘要）",
       any("系統紀錄" in m["content"] for w, r in client.requests if w == "quote" for m in r["messages"] if m["role"] == "assistant"))
 
+# 2b. 報價＋取消一起問：規定專員排在報價專員後面，直接拿總價算退費，不再跟客人要（I6 人工驗收問題 3）
+client = use({
+    "router": [route(quote="4 個人去沖繩住海風飯店多少錢", policy="出發前一週取消會扣多少",
+                     reception="打招呼")],
+    "quote": [reply("tool_use", tool("q4", "calculate_quote", {"package_id": okinawa, "hotel_id": seaside, "people": 4})),
+              reply("end_turn", text(f"4 人總價 NT$ {total:,}。"))],
+    "policy": [reply("tool_use", tool("r1", "calculate_refund", {"total_price": total, "days_before_departure": 7})),
+               reply("end_turn", text(f"您好，出發前 7 天取消扣 50%，退 NT$ {total // 2:,}（取消與退費規定 第3條）。"))],
+    "reception": [reply("end_turn", text("您好！歡迎詢問。"))],
+})
+seq = multi_agent.chat(None, "您好，4 個人去沖繩住海風飯店多少錢？出發前一週取消會扣多少？")
+names = [p["agent"] for p in seq["agents"]]
+check("規定專員在報價專員之後才作答", names.index("規定專員") > names.index("報價專員"), names)
+check("三位專員分兩批做完，檢查員只檢查一次", names.count("檢查員") == 1 and names[-1] == "組合回覆", names)
+policy_asked = next(r for w, r in client.requests if w == "policy")["messages"][-1]["content"]
+check("規定專員拿到報價專員算好的總價", str(total) in policy_asked and "不要再請客人提供總價" in policy_asked, policy_asked[-160:])
+check("回覆直接算出退費金額", f"NT$ {total // 2:,}" in seq["reply"], seq["reply"])
+check("合併後只問候一次", seq["reply"].count("您好") == 1, seq["reply"])
+
+# 2c. 房價說成「每人每晚」→ 退回重答（I6 人工驗收問題 2）
+use({
+    "router": [route("quote")],
+    "quote": [reply("tool_use", tool("q5", "list_hotels", {"destination": "沖繩"})),
+              reply("end_turn", text("海風飯店每人每晚 NT$ 3,200。")),
+              reply("end_turn", text("海風飯店每間每晚 NT$ 3,200（一間住 2 人）。"))],
+})
+room = multi_agent.chat(None, "沖繩的飯店多少錢")
+check("「每人每晚」被檢查員擋下", "每間每晚" in room["agents"][2]["detail"], room["agents"][2]["detail"])
+check("重答後改成每間每晚", "每間每晚" in room["reply"] and "每人每晚" not in room["reply"], room["reply"])
+
 # 3. 檢查員：金額不在工具結果裡 → 退回重答一次 → 改對就通過
 client = use({
     "router": [route("quote")],
@@ -193,8 +223,9 @@ check("LangGraph 圖包含全部節點", {"router", "quote", "policy", "receptio
 
 # 假 AI 的用量不能算進真實的每日上限：刪掉測試產生的紀錄
 agent._client = None
-for t in query("SELECT id FROM ai_turns WHERE id > %s", (FIRST_TURN,)):
+for t in query("SELECT id, conversation_id FROM ai_turns WHERE id > %s", (FIRST_TURN,)):
     query("DELETE FROM ai_tool_calls WHERE turn_id = %s RETURNING id", (t["id"],))
+    query("DELETE FROM handoffs WHERE conversation_id = %s RETURNING id", (t["conversation_id"],))
 query("DELETE FROM ai_turns WHERE id > %s RETURNING id", (FIRST_TURN,))
 
 print(f"\n{sum(results)}/{len(results)} 通過")

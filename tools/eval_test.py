@@ -30,7 +30,7 @@ check("必須建立報價", g({"quote": True}, "x", [], False) == ["沒有建立
 
 # 2. 題組
 cases = evals.cases()
-check("題組 20 題、題號不重複", len(cases) == 20 and len({c[0] for c in cases}) == 20)
+check("題組 23 題、題號不重複", len(cases) == 23 and len({c[0] for c in cases}) == 23)
 check("涵蓋 7 種類別", {c[1] for c in cases} == {"報價", "邊界", "查無資料", "安全", "規定", "退費", "多輪"})
 
 # 3. 用假 AI 跑一輪：存檔、分數、清理
@@ -53,11 +53,11 @@ first_turn = query("SELECT coalesce(max(id), 0) AS n FROM ai_turns")[0]["n"]
 agent._client = FakeClient()
 agent.DAILY_CHAT_LIMIT, agent.DAILY_COST_LIMIT_USD = 10**6, 10**6
 latest = evals.run("假 AI 測試")
-check("跑完 20 題並存檔", latest["total"] == 20 and len(latest["results"]) == 20)
+check("跑完 23 題並存檔", latest["total"] == 23 and len(latest["results"]) == 23)
 q01 = next(r for r in latest["results"] if r["case_id"] == "Q01")
 check("假回答 Q01 金額對但沒用工具 → 不通過", not q01["passed"] and "沒有使用工具 calculate_quote" in q01["failures"])
 check("分數 = 通過題數", latest["passed"] == sum(r["passed"] for r in latest["results"]))
-check("類別統計", sum(c["total"] for c in latest["by_category"]) == 20)
+check("類別統計", sum(c["total"] for c in latest["by_category"]) == 23)
 
 # 清掉假的評測與用量
 query("DELETE FROM eval_results WHERE run_id = %s RETURNING id", (latest["id"],))

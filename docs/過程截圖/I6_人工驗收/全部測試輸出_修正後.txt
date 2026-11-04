@@ -1,0 +1,735 @@
+ Image citest-erp Building 
+ Image citest-website Building 
+ Image citest-supplier Building 
+ Image citest-app Building 
+ Image citest-mcp Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.34kB 0.0s done
+#1 DONE 0.0s
+
+#2 [website internal] load build definition from Dockerfile
+#2 transferring dockerfile: 274B done
+#2 DONE 0.0s
+
+#3 [mcp internal] load build definition from Dockerfile
+#3 transferring dockerfile: 201B done
+#3 DONE 0.0s
+
+#4 [erp internal] load build definition from Dockerfile
+#4 transferring dockerfile: 246B done
+#4 DONE 0.0s
+
+#5 [app internal] load build definition from Dockerfile
+#5 transferring dockerfile: 1.07kB done
+#5 DONE 0.1s
+
+#6 [supplier internal] load build definition from Dockerfile
+#6 transferring dockerfile: 251B done
+#6 DONE 0.1s
+
+#7 [supplier internal] load metadata for docker.io/library/python:3.11-slim
+#7 DONE 0.6s
+
+#8 [app internal] load metadata for docker.io/library/node:20.18-slim
+#8 DONE 0.6s
+
+#9 [app internal] load .dockerignore
+#9 transferring context: 2B done
+#9 DONE 0.1s
+
+#10 [website internal] load build context
+#10 transferring context: 6.16kB done
+#10 DONE 0.0s
+
+#11 [supplier internal] load build context
+#11 transferring context: 8.40kB done
+#11 DONE 0.0s
+
+#12 [website 1/4] FROM docker.io/library/python:3.11-slim@sha256:db20d8506e2f15b6db39b40b6015ca46bae855dec6dd326d462cfe79ae972893
+#12 resolve docker.io/library/python:3.11-slim@sha256:db20d8506e2f15b6db39b40b6015ca46bae855dec6dd326d462cfe79ae972893 0.1s done
+#12 DONE 0.1s
+
+#13 [website 3/4] RUN pip install --no-cache-dir fastapi==0.111.0 uvicorn==0.29.0 python-multipart==0.0.9
+#13 CACHED
+
+#14 [website 4/4] COPY website/app.py /code/app.py
+#14 CACHED
+
+#15 [website 2/4] WORKDIR /code
+#15 CACHED
+
+#16 [supplier 3/4] RUN pip install --no-cache-dir fastapi==0.111.0 uvicorn==0.29.0
+#16 CACHED
+
+#17 [supplier 4/4] COPY supplier/app.py /code/app.py
+#17 CACHED
+
+#18 [app frontend 1/6] FROM docker.io/library/node:20.18-slim@sha256:ffc11dbf16dd0abcbb7b837410601b4d5592db2d03741e13a4a5336ab74d7ccb
+#18 resolve docker.io/library/node:20.18-slim@sha256:ffc11dbf16dd0abcbb7b837410601b4d5592db2d03741e13a4a5336ab74d7ccb 0.1s done
+#18 DONE 0.1s
+
+#19 [mcp internal] load build context
+#19 transferring context: 5.42kB 0.0s done
+#19 DONE 0.1s
+
+#20 [website] exporting to image
+#20 exporting layers done
+#20 exporting manifest sha256:d35980e5b4f4ca8d969b57bd975f518c0752f7f908468c424329a4cceb8ca6eb done
+#20 exporting config sha256:21d5b68dcad6fd01cf7b3a218c02579b15db39dc53971104a01f319939b272be
+#20 ...
+
+#21 [erp internal] load build context
+#21 transferring context: 5.65kB 0.1s done
+#21 DONE 0.1s
+
+#22 [mcp 3/4] RUN pip install --no-cache-dir mcp==1.30.0
+#22 CACHED
+
+#23 [mcp 4/4] COPY mcp/server.py /code/server.py
+#23 CACHED
+
+#15 [erp 2/4] WORKDIR /code
+#15 CACHED
+
+#16 [erp 3/4] RUN pip install --no-cache-dir fastapi==0.111.0 uvicorn==0.29.0
+#16 CACHED
+
+#24 [erp 4/4] COPY erp/app.py /code/app.py
+#24 CACHED
+
+#20 [website] exporting to image
+#20 exporting config sha256:21d5b68dcad6fd01cf7b3a218c02579b15db39dc53971104a01f319939b272be done
+#20 exporting attestation manifest sha256:ad2026b4354d5e55489b56fbaeb69171b6416510670074022477e6e247b2379e
+#20 exporting attestation manifest sha256:ad2026b4354d5e55489b56fbaeb69171b6416510670074022477e6e247b2379e 0.1s done
+#20 exporting manifest list sha256:50df7e6cc124d245123e0899cdf70a0c3c078d0f578de293e56f42b093ee7184
+#20 exporting manifest list sha256:50df7e6cc124d245123e0899cdf70a0c3c078d0f578de293e56f42b093ee7184 0.1s done
+#20 naming to docker.io/library/citest-website:latest 0.0s done
+#20 unpacking to docker.io/library/citest-website:latest
+#20 ...
+
+#25 [supplier] exporting to image
+#25 exporting layers done
+#25 exporting manifest sha256:983fd4ba735ce331a7cb7e8f75a99ced324103d3394573d918a55d68e2b7203a done
+#25 exporting config sha256:c9db0a96ccdd3778e85bebb3125be3cbf5e770a6c111a7cd8208c86642a370b1 done
+#25 exporting attestation manifest sha256:5663ff2e84c843c814b6a1747de87d67d385a362dd55bc08410b3201ccb53f7f 0.1s done
+#25 exporting manifest list sha256:14d5af9655edf9d1b532dce8cfcedfec894255668ff81ae16ad44b2c07e4f4ca 0.1s done
+#25 naming to docker.io/library/citest-supplier:latest 0.0s done
+#25 unpacking to docker.io/library/citest-supplier:latest 0.0s done
+#25 DONE 0.4s
+
+#20 [website] exporting to image
+#20 unpacking to docker.io/library/citest-website:latest 0.0s done
+#20 DONE 0.5s
+
+#26 [erp] exporting to image
+#26 exporting layers done
+#26 exporting manifest sha256:e1d0a85e3fbd695bc308b2871a33a333b4863c5c77e874506ad3650b0fccaf6f 0.0s done
+#26 exporting config sha256:f9040f5757243fa240cee270804468e9d48284f50af82e668f0c07b5e6162731 0.0s done
+#26 exporting attestation manifest sha256:c7c30775cba3b973238f2d74ce55a269ce136d547426ce096b965fd141efc1f7 0.1s done
+#26 exporting manifest list sha256:35bcfc14430a8a4521dab9307946b9d36c20dce325ddb4a824bd8517187f95a5 0.1s done
+#26 naming to docker.io/library/citest-erp:latest 0.0s done
+#26 unpacking to docker.io/library/citest-erp:latest 0.1s done
+#26 DONE 0.5s
+
+#27 [mcp] exporting to image
+#27 exporting layers done
+#27 exporting manifest sha256:49d913b4f15a3ee55f14a1b369aaf0c0ccc1113b542fa08246ecbba5cf44b820 0.0s done
+#27 exporting config sha256:577cb798e95e31bf201de480eb0115d361380917028567bdeaeeef346bf4ae27 0.0s done
+#27 exporting attestation manifest sha256:234daeda56bb374a4e498155de8e4d019e1cc35aa718d2b1988e2806a64f656e 0.1s done
+#27 exporting manifest list sha256:7bc5924936e1761b0501d87eea0e66c6155f48d0740450c13ffb3c67a8fa2610 0.1s done
+#27 naming to docker.io/library/citest-mcp:latest 0.0s done
+#27 unpacking to docker.io/library/citest-mcp:latest 0.1s done
+#27 DONE 0.5s
+
+#28 [app internal] load build context
+#28 ...
+
+#29 [mcp] resolving provenance for metadata file
+#29 DONE 0.1s
+
+#30 [supplier] resolving provenance for metadata file
+#30 DONE 0.2s
+
+#31 [website] resolving provenance for metadata file
+#31 DONE 0.2s
+
+#32 [erp] resolving provenance for metadata file
+#32 DONE 0.0s
+
+#28 [app internal] load build context
+#28 transferring context: 120.42MB 5.3s
+#28 transferring context: 135.73MB 5.9s done
+#28 DONE 5.9s
+
+#15 [app 2/4] WORKDIR /code
+#15 CACHED
+
+#33 [app stage-1 3/9] COPY backend/requirements.txt .
+#33 CACHED
+
+#34 [app stage-1 4/9] RUN pip install --no-cache-dir -r requirements.txt
+#34 CACHED
+
+#35 [app stage-1 5/9] RUN python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2', cache_dir='/models')"
+#35 CACHED
+
+#36 [app frontend 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#36 CACHED
+
+#37 [app frontend 4/6] RUN npm ci --no-audit --no-fund
+#37 CACHED
+
+#38 [app frontend 2/6] WORKDIR /web
+#38 CACHED
+
+#39 [app frontend 5/6] COPY frontend/ ./
+#39 CACHED
+
+#40 [app frontend 6/6] RUN npm test && npm run build
+#40 CACHED
+
+#41 [app stage-1 6/9] COPY backend/app /code/app
+#41 DONE 0.2s
+
+#42 [app stage-1 7/9] COPY --from=frontend /web/dist /code/frontend
+#42 DONE 0.1s
+
+#43 [app stage-1 8/9] COPY data/policies /code/data/policies
+#43 DONE 0.1s
+
+#44 [app stage-1 9/9] COPY models /code/models
+#44 DONE 0.3s
+
+#45 [app] exporting to image
+#45 exporting layers
+#45 exporting layers 3.2s done
+#45 exporting manifest sha256:ec1714c66a06050c2943cd12437ad59d2ed5a8cf78f02deb5b23c7c4830e79e8 0.0s done
+#45 exporting config sha256:ad5336dbea79379522524024fbbd9062c22a8540dd6e8878a54da96464cd7ce9 0.0s done
+#45 exporting attestation manifest sha256:a6d591e450d72bba74c7f81cb9821ddb2cd91cf7021b0b4bb2893f3071134f71 0.0s done
+#45 exporting manifest list sha256:af428056507eba39fd75a16748a61b970951c14a863cbf9ca376172041ba3725
+#45 exporting manifest list sha256:af428056507eba39fd75a16748a61b970951c14a863cbf9ca376172041ba3725 0.0s done
+#45 naming to docker.io/library/citest-app:latest done
+#45 unpacking to docker.io/library/citest-app:latest
+#45 unpacking to docker.io/library/citest-app:latest 0.6s done
+#45 DONE 4.0s
+
+#46 [app] resolving provenance for metadata file
+#46 DONE 0.0s
+ Image citest-supplier Built 
+ Image citest-mcp Built 
+ Image citest-erp Built 
+ Image citest-app Built 
+ Image citest-website Built 
+ Network citest_default Creating 
+ Network citest_default Created 
+ Volume citest_alertdata Creating 
+ Volume citest_alertdata Created 
+ Volume citest_dbdata Creating 
+ Volume citest_dbdata Created 
+ Volume citest_n8ndata Creating 
+ Volume citest_n8ndata Created 
+ Volume citest_grafanadata Creating 
+ Volume citest_grafanadata Created 
+ Volume citest_erpdata Creating 
+ Volume citest_erpdata Created 
+ Volume citest_promdata Creating 
+ Volume citest_promdata Created 
+ Container citest-mailpit-1 Creating 
+ Container citest-supplier-1 Creating 
+ Container citest-db-1 Creating 
+ Container citest-erp-1 Creating 
+ Container citest-n8n-1 Creating 
+ Container citest-mailpit-1 Created 
+ Container citest-alertmanager-1 Creating 
+ Container citest-db-1 Created 
+ Container citest-n8n-1 Created 
+ Container citest-erp-1 Created 
+ Container citest-app-1 Creating 
+ Container citest-supplier-1 Created 
+ Container citest-alertmanager-1 Created 
+ Container citest-app-1 Created 
+ Container citest-website-1 Creating 
+ Container citest-prometheus-1 Creating 
+ Container citest-mcp-1 Creating 
+ Container citest-website-1 Created 
+ Container citest-mcp-1 Created 
+ Container citest-prometheus-1 Created 
+ Container citest-grafana-1 Creating 
+ Container citest-grafana-1 Created 
+ Container citest-erp-1 Starting 
+ Container citest-supplier-1 Starting 
+ Container citest-mailpit-1 Starting 
+ Container citest-db-1 Starting 
+ Container citest-n8n-1 Starting 
+ Container citest-db-1 Started 
+ Container citest-erp-1 Started 
+ Container citest-db-1 Waiting 
+ Container citest-mailpit-1 Started 
+ Container citest-alertmanager-1 Starting 
+ Container citest-supplier-1 Started 
+ Container citest-n8n-1 Started 
+ Container citest-alertmanager-1 Started 
+ Container citest-db-1 Healthy 
+ Container citest-app-1 Starting 
+ Container citest-app-1 Started 
+ Container citest-prometheus-1 Starting 
+ Container citest-website-1 Starting 
+ Container citest-mcp-1 Starting 
+ Container citest-prometheus-1 Started 
+ Container citest-grafana-1 Starting 
+ Container citest-website-1 Started 
+ Container citest-mcp-1 Started 
+ Container citest-grafana-1 Started 
+等待系統就緒……
+::group::api_test
+✔ api_test
+PASS 健康檢查 
+PASS 目的地清單 ['京都', '台東', '沖繩', '花蓮', '首爾']
+PASS 目的地篩選 
+PASS 預算篩選 
+PASS 查無資料回傳空清單 
+PASS 名額篩選 
+PASS SQL 注入無效 
+PASS 飯店篩選 
+PASS 報價公式 85200 / 85200
+PASS 房間數無條件進位 
+PASS 人數 0 被拒絕 
+PASS 人數 21 被拒絕 
+PASS 空白姓名被拒絕 
+PASS 不存在的行程 
+PASS 目的地不同被拒絕 
+PASS 超過剩餘名額被拒絕 
+PASS 未登入不能看報價 
+PASS 錯誤權杖被拒絕 
+PASS 未登入不能下載 
+PASS 業務看報價（JOIN） 
+PASS CSV 下載與公式防護 
+PASS CSV 有來源欄位 
+PASS 改成成交並同步 ERP {'quote_id': 3, 'status': '成功', 'attempts': 1, 'erp_order_no': 'ERP-00001', 'last_error': None, 'updated_at': '2026-11-04T04:33:53.165321+00:00'}
+PASS 已成交不能再成交 
+PASS 重送不會在 ERP 重複建單（冪等） 
+PASS 不允許的狀態被拒絕 
+PASS 未登入不能改狀態 
+PASS 不存在的報價 
+PASS ERP 故障時記錄失敗 
+PASS 故障中重送仍失敗 
+PASS 恢復後重送成功 {'retried': 1, 'succeeded': 1, 'still_failed': [], 'still_failed_detail': []}
+PASS 同步紀錄次數正確 3
+PASS 狀態變更有紀錄 
+PASS 成交後可以取消 
+PASS 取消後不能成交 
+PASS 未登入不能看 /api/erp/syncs 
+PASS 未登入不能看 /api/admin/turns 
+PASS 未登入不能看 /api/admin/usage 
+PASS 未登入不能看 /api/handoffs 
+PASS 用量統計 
+PASS AI 對話紀錄 
+PASS 不存在的轉接單 
+PASS 報價帶出發日期 
+PASS 出發日期今天被拒絕 出發日期必須是明天以後
+PASS 出發日期昨天被拒絕 出發日期必須是明天以後
+PASS 出發日期超過一年被拒絕 只能報價一年內出發的行程
+PASS 日期格式錯誤被拒絕 
+PASS 用出發日期算退費 
+PASS 退費沒給天數也沒給日期被拒絕 
+PASS 報價列表有出發日 
+PASS 試算報價不存檔 
+PASS 退費計算 API 
+PASS 退費天數不可為負 
+PASS 儀表板資料 
+PASS 每日趨勢 14 天連續且最後一天是今天 ['2026-11-04']
+PASS 成交率在 0 到 1 之間 
+PASS 未登入不能看儀表板 
+PASS 天數範圍外被拒絕 
+PASS 規定文件清單 
+PASS 向量搜尋找到正確條文 行李規定 第4條 禁止攜帶物品
+PASS 無關問題沒有結果 
+PASS 空白搜尋被拒絕 
+PASS AI 狀態 {'enabled': False, 'model': 'claude-haiku-5-5'}
+PASS 空白訊息被拒絕 
+PASS 超過 500 字被拒絕 
+PASS 對話編號格式錯誤被拒絕 
+PASS 沒有金鑰時回 503 
+PASS API 文件頁關閉 
+
+68/68 通過
+::endgroup::
+::group::auth_test
+✔ auth_test
+PASS 密碼錯誤 401 
+PASS 帳號不存在也回一樣的訊息（不透露帳號是否存在） 
+PASS 業務登入成功 
+PASS 查詢目前登入者 
+PASS 用登入工作階段看報價 
+PASS 假的工作階段被拒絕 
+PASS 自動化權杖不能進後台 
+PASS 資料庫存的是雜湊不是密碼 
+PASS 資料庫找不到原始工作階段 
+PASS 業務不能管理帳號 
+PASS 管理員看得到帳號清單 
+PASS 帳號清單不含密碼 
+PASS 弱密碼被拒絕 
+PASS 帳號格式錯誤被拒絕 
+PASS 不存在的角色被拒絕 
+PASS 新增帳號成功 
+PASS 重複帳號被拒絕 
+PASS 第 5 次錯誤鎖定帳號 
+PASS 鎖定中密碼正確也不能登入 
+PASS 管理員重設密碼後解鎖並可登入 
+PASS 停用後原本的工作階段立即失效 
+PASS 停用的帳號不能登入 
+PASS 管理員不能停用自己 
+PASS 登出後工作階段失效 
+PASS 狀態變更記錄操作者 示範業務
+PASS 登入紀錄有成功與失敗 
+PASS 管理員看得到登入紀錄 
+
+27/27 通過
+::endgroup::
+::group::partner_test
+✔ partner_test
+PASS 沒有金鑰 401 
+PASS 假金鑰 401 
+PASS 示範金鑰可以查目的地 
+PASS 合作夥伴金鑰不能進後台 
+PASS 試算由系統計算 
+PASS 建立報價單 
+PASS 報價來源標記為官網串接 
+PASS 合作夥伴建立報價一定要出發日期 
+PASS 今天出發被拒絕 
+PASS 查詢自己的報價單 
+PASS 管理員建立合作夥伴並取得金鑰 
+PASS 資料庫只存雜湊 
+PASS 合作夥伴清單不含金鑰 
+PASS 看不到別家的報價單（回 404） 
+PASS 業務不能建立合作夥伴 
+PASS 前 3 次成功、超過上限回 429 [200, 200, 429, 429, 429]
+PASS 429 附上 Retry-After 
+PASS 被限流的呼叫也有紀錄 
+PASS 20 個請求同時送、上限 10：剛好放行 10 次 200×10、429×10
+PASS 紀錄都補上了真正的狀態碼（沒有停在處理中） 處理中 0 筆
+PASS 停用後金鑰失效 
+PASS 合作夥伴 API 文件 
+PASS 主系統 API 文件仍然關閉 
+
+23/23 通過
+::endgroup::
+::group::agent_test
+✔ agent_test
+PASS 回傳 AI 回覆 
+PASS 記錄使用的工具 ['search_packages', 'list_hotels', 'calculate_quote']
+PASS 同一輪的工具結果放在同一則訊息 
+PASS 查行程工具結果正確 ['海島放鬆 4 日', '親子同樂 5 日']
+PASS 算報價工具用系統公式 107200
+PASS 送給 Claude 的設定（含今天日期） 
+PASS 對話紀錄存檔 0.000600
+PASS 工具呼叫存檔 
+PASS 延續同一段對話 
+PASS AI 建立的報價 {'id': 8, 'created_at': '2026-11-04 04:33:57.742177+00:00', 'customer_name': 'AI測試客人', 'package': '海島放鬆 4 日', 'hotel': '海風飯店', 'people': 4, 'rooms': 2, 'nights': 3, 'total_price': 107200, 'departure_date': None}
+PASS 報價來源標記為 AI 
+PASS 不合理參數回報錯誤 
+PASS 不存在的工具回報錯誤 
+PASS 建立轉接單 
+PASS 新對話也能轉專人 
+PASS 拒答時給固定說明 
+PASS 超過步驟上限會停止 
+PASS 找不到對話 
+PASS 每日上限 
+PASS 查規定工具回傳條文與出處 
+PASS 查不到規定時明確說沒有 
+PASS 退費計算（7 天扣 50%） 
+PASS 退費級距邊界 
+PASS 負的天數被拒絕 
+PASS 用出發日期算退費（7 天後扣 50%） 
+PASS 退費沒給天數也沒給日期回報錯誤 
+PASS 試算帶出發日期算出回程日 
+PASS 今天出發被拒絕 
+PASS 費用計算 
+
+29/29 通過
+::endgroup::
+::group::multi_agent_test
+✔ multi_agent_test
+PASS 報價題交給報價專員 [{'agent': '分流', 'detail': '報價專員「quote 的測試問題」（測試）'}, {'agent': '報價專員', 'detail': '第 1 次作答，用了 1 個工具'}, {'agent': '檢查員', 'detail': '全部通過'}, {'agent': '組合回覆', 'detail': '合併 1 位專員的回答'}]
+PASS 回覆是報價專員的回答 
+PASS 報價專員只拿到報價相關工具 
+PASS 分流強制使用 route 工具 
+PASS 存檔：經過的 Agent 與模型標示 claude-haiku-5-5（多 Agent）
+PASS 存檔：工具記錄是哪位專員呼叫 [{'tool': 'calculate_quote', 'agent': '報價專員'}]
+PASS 費用加總分流與專員 1500
+PASS 報價與規定兩位專員都有執行 ['分流', '報價專員', '規定專員', '檢查員', '組合回覆']
+PASS 合併順序：先報價後規定 剛才的報價是 NT$ 107,200。
+
+出發前 2 至 7 天取消扣團費 50%（取消與退費規定 第3條）。
+PASS 每位專員拿到分給自己的問題，並附客人原話供核對數字 {'quote': '再說一次剛才的價格\n\n（只處理上面這段。客人原話：「再說一次價格，還有出發前一週取消扣多少」，人數、金額、日期以原話為準。）', 'policy': '出發前一週取消扣多少\n\n（只處理上面這段。客人原話：「再說一次價格，還有出發前一週取消扣多少」，人數、金額、日期以原話為準。）'}
+PASS 第二輪看得到上一輪紀錄（含工具摘要） 
+PASS 規定專員在報價專員之後才作答 ['分流', '報價專員', '接待專員', '規定專員', '檢查員', '組合回覆']
+PASS 三位專員分兩批做完，檢查員只檢查一次 ['分流', '報價專員', '接待專員', '規定專員', '檢查員', '組合回覆']
+PASS 規定專員拿到報價專員算好的總價 2, "nights": 3, "package_fee": 88000, "hotel_fee": 19200, "total_price": 107200, "departure_date": null}]。要算退費就用這裡的 total_price 交給 calculate_refund，不要再請客人提供總價。）
+PASS 回覆直接算出退費金額 4 人總價 NT$ 107,200。
+
+您好，出發前 7 天取消扣 50%，退 NT$ 53,600（取消與退費規定 第3條）。
+
+歡迎詢問。
+PASS 合併後只問候一次 4 人總價 NT$ 107,200。
+
+您好，出發前 7 天取消扣 50%，退 NT$ 53,600（取消與退費規定 第3條）。
+
+歡迎詢問。
+PASS 「每人每晚」被檢查員擋下 報價專員：飯店房價是每間每晚，不可寫成每人每晚
+PASS 重答後改成每間每晚 海風飯店每間每晚 NT$ 3,200（一間住 2 人）。
+PASS 金額錯誤被檢查員擋下並退回 ['分流', '報價專員', '檢查員', '報價專員', '檢查員', '組合回覆']
+PASS 重答後送出正確金額 更正：4 人總價 NT$ 107,200。
+PASS 退回時把問題寫給專員 
+PASS 兩次都錯就改成轉專人 這部分的金額需要專人再確認，已建立轉接單 #3，專人會盡快聯絡您。
+PASS 轉接單有寫原因 
+PASS 客人自己說的預算金額不會被誤判 全部通過
+PASS 說轉專人卻沒建立轉接單會被抓到 規定專員：回答說已轉給專人，但沒有真的建立轉接單；不要說沒做的事
+PASS 重答時真的建立轉接單才通過 {'agent': '檢查員', 'detail': '全部通過'}
+PASS 檢查員抓到沒附條號與稱謂 規定專員：回答規定時要註明出處，例如（取消與退費規定 第3條）；不要使用先生、小姐、女士等稱謂
+PASS 重答後附上條號 
+PASS 無關問題交給接待專員 
+PASS 切換模式要開新對話 切換了客服模式，請按「新對話」重新開始
+PASS LangGraph 圖包含全部節點 {'router', 'quote', 'policy', 'reviewer', '__start__', 'reception', '__end__', 'compose'}
+
+31/31 通過
+::endgroup::
+::group::procurement_test
+✔ procurement_test
+PASS 成交自動產生請購單 19200
+PASS 三家供應商總價由系統計算 {'東亞旅宿批發': 14400, '海島訂房網': 15360, '飯店直訂': 16320}
+PASS AI 建立採購單草稿 
+PASS 採購用較強模型與 fallback 
+PASS 比價過程記在 AI 對話紀錄 
+PASS 待核准時不能重複比價 
+PASS 退回沒寫原因被拒絕 
+PASS 退回成功 
+PASS 退回後請購單回到待比價 
+PASS AI 看得到退回原因、看不到舊分析 
+PASS 價差由系統提供 {'東亞旅宿批發': 0, '海島訂房網': 960, '飯店直訂': 1920}
+PASS 業務核准並下單 SUP-00001
+PASS 已下單不能再核准 
+PASS 大額草稿標記需主管 132600
+PASS 業務不能核准大額 
+PASS 主管可以核准大額 
+PASS 房量不足被系統擋下 
+PASS AI 改選有房量的供應商 
+PASS 14 人採購金額超過門檻要主管 57120
+PASS 供應商故障時記錄下單失敗 
+PASS 故障中重送仍失敗 
+PASS 恢復後重送成功 
+PASS 待核准清單 
+PASS 報價取消時草稿自動退回 
+PASS 報價取消時請購單取消 
+PASS 請購單帶出發日期 
+PASS 直訂 14 天期限已過 ('2026-10-31', False)
+PASS 訂房網 7 天期限還沒過 ('2026-11-07', True)
+PASS 批發本來就不能免費取消 
+PASS 未登入不能核准 
+PASS 未登入不能看採購 
+PASS 主管權杖也能看後台 
+
+32/32 通過
+::endgroup::
+::group::automation_test
+✔ automation_test
+PASS 新報價自動產生通知（經過 n8n） 新報價 #14：自動化測試
+PASS 通知內容正確 慢活台東 4 日＋稻浪民宿｜2 人｜NT$ 32,200｜來源：網頁。請在 24 小時內聯絡客人。
+PASS 同一件事只通知一次 
+PASS 沒有權杖不能寫通知 
+PASS 自動化權杖不能看後台通知列表 
+PASS 每日報表資料 {'date': '2026-11-03', 'quotes': 0, 'ai_quotes': 0, 'deals': 0, 'deal_amount': 0, 'top_packages': [], 'ai_turns': 0, 'ai_cost_usd': 0.0}
+PASS 自動化可查待核准 
+PASS 自動化可重送 ERP 
+PASS 自動化權杖不能看採購 
+PASS 業務看得到通知 
+PASS 全部標為已讀 
+
+11/11 通過
+::endgroup::
+::group::eval_test
+✔ eval_test
+PASS 全部通過回空清單 
+PASS 缺金額 
+PASS 任一關鍵字 
+PASS 不該出現的字 
+PASS 沒用到工具 
+PASS 用了不該用的工具 
+PASS 條文出處（有） 
+PASS 條文出處（沒有） 
+PASS 必須建立報價 
+PASS 題組 23 題、題號不重複 
+PASS 涵蓋 7 種類別 
+PASS 跑完 23 題並存檔 
+PASS 假回答 Q01 金額對但沒用工具 → 不通過 
+PASS 分數 = 通過題數 
+PASS 類別統計 
+
+15/15 通過
+::endgroup::
+::group::rag_eval
+✔ rag_eval
+向量模型： travel/minilm-travel-finetuned 　門檻： 0.35
+PASS 第1名 出發前一週不去了可以退多少錢 → ['取消與退費規定 第3條', '取消與退費規定 第4條', '取消與退費規定 第5條'] 0.634
+PASS 第1名 錢什麼時候會退回來 → ['取消與退費規定 第4條', '取消與退費規定 第3條', '付款與發票規定 第4條'] 0.677
+PASS 第1名 人數不夠會不會開團 → ['取消與退費規定 第5條'] 0.596
+PASS 第1名 颱風來了沒辦法出發怎麼辦 → ['取消與退費規定 第6條'] 0.55
+PASS 前3名 行李箱可以帶多重 → ['行李規定 第2條', '行李規定 第1條', '行李規定 第3條'] 0.693
+PASS 第1名 充電寶可以放託運嗎 → ['行李規定 第4條'] 0.471
+PASS 前3名 去沖繩要辦簽證嗎 → ['簽證與入境說明 第4條', '簽證與入境說明 第2條', '行李規定 第5條'] 0.594
+PASS 第1名 護照快過期了還能出國嗎 → ['簽證與入境說明 第1條', '簽證與入境說明 第4條', '簽證與入境說明 第2條'] 0.706
+PASS 第1名 去花蓮要帶護照嗎 → ['簽證與入境說明 第4條', '行李規定 第5條'] 0.739
+PASS 第1名 生病看醫生保險有賠嗎 → ['旅遊保險說明 第2條', '旅遊保險說明 第4條', '旅遊保險說明 第1條'] 0.399
+PASS 第1名 尾款要什麼時候付 → ['付款與發票規定 第1條', '取消與退費規定 第2條', '付款與發票規定 第2條'] 0.618
+PASS 第1名 可以刷卡分期嗎 → ['付款與發票規定 第2條', '取消與退費規定 第4條'] 0.528
+PASS 第1名 報價單多久會失效 → ['付款與發票規定 第4條', '取消與退費規定 第1條', '取消與退費規定 第3條'] 0.529
+PASS 第1名 三歲小孩怎麼收費 → ['兒童、長者與特殊需求 第1條', '付款與發票規定 第2條'] 0.577
+PASS 第1名 我吃素可以嗎 → ['兒童、長者與特殊需求 第4條'] 0.451
+PASS 第1名 可以帶狗狗去嗎 → ['兒童、長者與特殊需求 第5條'] 0.592
+PASS 今天天氣如何 → 無結果
+PASS 推薦我好看的電影 → 無結果
+
+第 1 名命中：14/16　前 3 名命中：16/16（其中已知弱點未命中 0 題）　無關問題回空：2/2
+::endgroup::
+::group::monitor_test
+✔ monitor_test
+PASS 沒帶權杖看不到指標 
+PASS 權杖錯誤看不到指標 
+PASS 帶權杖可以看到指標 
+PASS 請求數依路由樣板記錄（不是實際網址） ['/api/admin/dashboard', '/api/admin/login-events', '/api/admin/partners', '/api/admin/partners/{partner_id}', '/api/admin/turns', '/api/admin/usage', '/api/admin/users', '/api/admin/users/{user_id}']
+PASS 不存在的網址歸到「其他」，不會讓指標無限增加 
+PASS 指標 travel_http_request_seconds_bucket 
+PASS 指標 travel_ai_cost_today_usd 
+PASS 指標 travel_ai_cost_limit_usd 
+PASS 指標 travel_erp_sync_failed 
+PASS 指標 travel_purchase_orders_pending 
+PASS 指標 travel_db_up 
+PASS Prometheus 抓得到主系統 
+PASS 告警規則全部載入（7 條） ['主系統停止回應', '資料庫無法查詢', '錯誤率偏高', '回應變慢', 'AI花費接近每日上限', 'ERP同步失敗未處理', 'AI評測分數下降']
+PASS Prometheus 查得到營運指標 [{'metric': {'__name__': 'travel_ai_cost_limit_usd', 'instance': 'app:8000', 'job': 'travel-app'}, 'value': [1793766853.369, '1']}]
+PASS Prometheus 有接上 Alertmanager 
+PASS Grafana 正常 
+PASS 監控儀表板自動建立 200 
+PASS 沒登入看不到 Grafana 儀表板 
+PASS Grafana 連得到 Prometheus {"details":{"application":"Prometheus","features":{"rulerApiEnabled":false}},"message":"Successfully queried the Prometheus API.","status":"OK"}
+PASS Alertmanager 收下告警 200
+PASS 告警信寄到 IT 信箱 【系統告警】監控測試告警1793766853（firing）
+
+21/21 通過
+::endgroup::
+::group::opendata_test
+✔ opendata_test
+PASS 解析官方格式（含 BOM） 4
+PASS 歇業的不收 
+PASS 不存統一編號等不需要的欄位 
+PASS 地址組合、圖片整理 
+PASS 第一次匯入：新增 3 筆（重複的只算一次） {'status': '完成', 'id': 1, 'total': 4, 'inserted': 3, 'updated': 0, 'unchanged': 0, 'removed': 0}
+PASS 匯入紀錄 
+PASS 第二次匯入：更新 1、不變 1、下架 1 {'status': '完成', 'id': 2, 'total': 2, 'inserted': 0, 'updated': 1, 'unchanged': 1, 'removed': 1}
+PASS 下架的不刪除，只標記 
+PASS 下載或解析失敗會記錄原因 
+PASS 失敗時舊資料保留 
+PASS 依縣市與關鍵字搜尋 
+PASS 景點類型轉成中文 ['自然風景', '水域環境']
+PASS 回傳資料來源與授權 
+PASS 住宿依預算篩選 
+PASS 縣市統計 
+PASS AI 工具：縣市名稱自動轉換 臺東縣
+PASS AI 工具：註明房價不是報價 
+PASS AI 工具：不支援的種類回錯誤 
+PASS API 可以搜尋（真實資料表） 
+PASS API 不支援的種類回 422 
+PASS API 找不到回 404 
+PASS 沒登入不能觸發匯入 
+PASS 真實資料沒有被動到 
+
+23/23 通過
+::endgroup::
+::group::crawler_test
+✔ crawler_test
+PASS 讀到 robots.txt 的 Crawl-delay 
+PASS 不抓 robots.txt 禁止的路徑 
+PASS 爬完全部住宿與分頁（30 家、4 頁） {'status': '完成', 'id': 1, 'pages': 4, 'hotels': 30, 'changes': 0, 'alerts': 0, 'requests': 35, 'retries': 0, 'errors': []}
+PASS 每次請求有間隔（沒有被限流） 0
+PASS 抓到的價格和網站完全一致（含售完） []
+PASS 售完的房型記成沒有價格 12
+PASS 第一次爬取沒有「變動」 
+PASS 爬取紀錄 
+PASS 價格沒變不重複寫入 
+PASS 偵測到價格變動 75
+PASS 大幅漲跌發通知 [{'title': '沖繩 海風飯店 標準雙人房 漲 18%', 'body': '每晚 NT$ 4,590 → NT$ 5,400（價格日期 2026-11-05，來源：模擬供應商網站）'}, {'title': '沖繩 海風飯店 豪華雙人房 漲 18%', 'body': '每晚 NT$ 6,200 → NT$ 7,290（價格日期 2026-11-05，來源：模擬供應商網站）'}]
+PASS 通知寫出新舊價格 
+PASS 後台查得到變動前後價格 
+PASS 同一天重爬不重複通知 
+PASS 遇到 429 會等待後重試成功 3
+PASS 網站改版時回報錯誤 
+PASS 列表沒有資料時不會無限翻頁 
+PASS 比價 API（依城市） 6
+PASS 沒登入不能執行爬蟲 
+
+19/19 通過
+::endgroup::
+::group::api_matrix_test
+✔ api_matrix_test
+主系統 API：57 支（不含 /partner 子應用與頁面）
+
+PASS 全部 57 支 API：沒登入、錯誤輸入、不存在的編號，都不會讓系統出錯（500） []
+PASS 需要登入的 API 沒登入一律擋下（401／403） []
+PASS 管理員專用的 API，業務帳號一律 403 []
+PASS 合作夥伴 GET /partner/v1/packages 沒帶金鑰 → 401 401
+PASS 合作夥伴 POST /partner/v1/quotes 沒帶金鑰 → 401 401
+PASS 合作夥伴 GET /partner/v1/quotes/1 沒帶金鑰 → 401 401
+PASS GET /api/policies/model：回傳使用中的向量模型與門檻 {'model': 'travel/minilm-travel-finetuned', 'finetuned': True, 'min_score': 0.35}
+PASS GET /api/explore/cities：縣市清單與資料來源 
+PASS GET /api/erp/status：ERP 連線狀態 {'status': 'ok', 'fail_mode': False}
+PASS GET /api/admin/evals：評測紀錄（業務可看） 
+PASS POST /api/admin/evals/run：業務不能執行評測（只有管理員） 403
+PASS POST /api/admin/evals/run：模式錯誤回 422（不會真的開始跑、不花錢） 422
+PASS GET /api/admin/opendata/imports：匯入紀錄 
+PASS GET /api/admin/crawler/runs：爬蟲紀錄 
+PASS GET /api/admin/crawler/changes：價格變動 
+PASS POST /api/erp/syncs/{id}/retry：不存在的報價回 404 404
+PASS GET /api/procurement/{id}/offers：三家供應商報價與價差 [{'offer_id': 2, 'supplier': '東亞旅宿批發', 'rating': 4.1, 'note': '批發價最低，但房量少且訂了不能免費取消', 'price_per_room_night': 2400, 'room
+PASS GET /api/procurement/{id}/offers：不存在回 404 404
+PASS POST /api/procurement/{id}/analyze：不存在回 404（不會呼叫 AI） 404
+PASS POST /api/purchase-orders/{id}/decision：不存在回 404 404
+PASS POST /api/purchase-orders/{id}/decision：格式錯誤回 422 422
+PASS POST /api/purchase-orders/{id}/retry：不存在回 404 404
+
+22/22 通過
+::endgroup::
+::group::mcp_test
+Processing request of type ListToolsRequest
+Processing request of type CallToolRequest
+Processing request of type CallToolRequest
+Processing request of type CallToolRequest
+Processing request of type CallToolRequest
+Processing request of type CallToolRequest
+Processing request of type CallToolRequest
+Processing request of type CallToolRequest
+PASS [HTTP] 列出 7 個工具 ['calculate_quote', 'calculate_refund', 'create_quote', 'list_destinations', 'list_hotels', 'search_packages', 'search_policy']
+PASS [HTTP] 計算退費（系統計算） {'total_price': 65600, 'days_before_departure': 10, 'deduct_percent': 30, 'deduction': 19680, 'refund': 45920, 'source': '取消與退費規定 第3條'}
+PASS [HTTP] 查目的地 ['京都', '台東', '沖繩', '花蓮', '首爾']
+PASS [HTTP] 查行程 
+PASS [HTTP] 試算報價（系統計算） 107200
+PASS [HTTP] 查規定 
+PASS [HTTP] 錯誤參數回報錯誤 
+PASS [HTTP] 建立報價單 
+PASS [stdio] 列出 7 個工具 ['calculate_quote', 'calculate_refund', 'create_quote', 'list_destinations', 'list_hotels', 'search_packages', 'search_policy']
+PASS [stdio] 計算退費（系統計算） {'total_price': 65600, 'days_before_departure': 10, 'deduct_percent': 30, 'deduction': 19680, 'refund': 45920, 'source': '取消與退費規定 第3條'}
+PASS [stdio] 查目的地 ['京都', '台東', '沖繩', '花蓮', '首爾']
+PASS [stdio] 查行程 
+PASS [stdio] 試算報價（系統計算） 107200
+PASS [stdio] 查規定 
+PASS [stdio] 錯誤參數回報錯誤 
+
+15/15 通過
+✔ mcp_test
+::endgroup::
+::group::ui_test
+✔ ui_site_test
+開放資料： 沒有（跳過景點相關檢查）
+前台畫面測試全部通過
+::endgroup::
+全部測試通過
+結束碼 0

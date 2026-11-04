@@ -30,6 +30,7 @@ APP_PORT=${APP_PORT}
 ERP_PORT=$((APP_PORT + 1))
 MCP_PORT=$((APP_PORT + 2))
 WEBSITE_PORT=$((APP_PORT + 3))
+SUPPLIER_PORT=$((APP_PORT + 4))
 N8N_PORT=$((APP_PORT + 10))
 MAIL_UI_PORT=$((APP_PORT + 11))
 PROMETHEUS_PORT=$((APP_PORT + 12))
@@ -38,6 +39,10 @@ GRAFANA_PORT=$((APP_PORT + 14))
 EOF
 fi
 DC=(docker compose -p "$P" --env-file "$ENV_FILE")
+
+# 1b. 每次用新的隨機密碼，所以先清掉上一次留下的測試環境（舊資料庫還是舊密碼，app 會連不上，見錯誤紀錄 I6-12）。
+#     開發版 travelquote 有使用者的資料，絕對不清。
+if [ "$P" != "travelquote" ]; then "${DC[@]}" down -v --remove-orphans >/dev/null 2>&1 || true; fi
 
 # 2. 建置並啟動
 "${DC[@]}" up -d --build
@@ -61,7 +66,7 @@ FAILED=()
 GRAFANA_PASSWORD=$(grep '^GRAFANA_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)
 SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
 echo "## 測試結果" >> "$SUMMARY"
-for t in api_test auth_test partner_test agent_test multi_agent_test procurement_test automation_test eval_test rag_eval monitor_test opendata_test crawler_test; do
+for t in api_test auth_test partner_test agent_test multi_agent_test procurement_test automation_test eval_test rag_eval monitor_test opendata_test crawler_test api_matrix_test; do
   echo "::group::$t"
   if docker exec -e GRAFANA_PASSWORD="$GRAFANA_PASSWORD" "$P-app-1" python "$t.py" > "/tmp/ci_$t.log" 2>&1; then
     echo "✔ $t"; echo "- ✔ $t：$(tail -n 1 /tmp/ci_$t.log)" >> "$SUMMARY"

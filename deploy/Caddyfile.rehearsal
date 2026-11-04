@@ -1,0 +1,5 @@
+# 本機預演用：模擬正式主機上的 Caddy（正式主機是 HTTPS 與 sslip.io 網址，這裡用 HTTP、任何主機名稱都轉給 app）
+:8180 {
+	encode gzip
+	reverse_proxy travelprod-app-1:8000
+}

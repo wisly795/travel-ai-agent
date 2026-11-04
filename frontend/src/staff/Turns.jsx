@@ -12,8 +12,8 @@ export default function Turns({ hidden, staffApi, version, onError }) {
         {!turns.length && <p>還沒有 AI 對話。</p>}
         {turns.map((turn) => (
           <details key={turn.id} className="turn">
-            <summary>{`#${turn.id}　${timeText(turn.created_at)}　客人：${turn.user_message}`}</summary>
-            <p className="policy-text">{`AI：${turn.reply}`}</p>
+            <summary>{`#${turn.id}　${timeText(turn.created_at)}　${turn.speaker || "客人"}：${turn.user_message}`}</summary>
+            <p className="policy-text">{`${turn.speaker === "採購系統" ? "採購 AI" : "AI"}：${turn.reply}`}</p>
             <small>
               {`工具：${turn.tools.map((t) => TOOL_LABELS[t.tool] || t.tool).join("、") || "無"}｜模型 ${turn.model}｜US$ ${Number(turn.cost_usd).toFixed(5)}`}
             </small>

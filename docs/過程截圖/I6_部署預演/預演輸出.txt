@@ -1,0 +1,87 @@
+== 建立模擬的 Caddy 與共用網路
+Unable to find image 'caddy:2.8.4-alpine' locally
+2.8.4-alpine: Pulling from library/caddy
+60177795cab3: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+b44c500748de: Pulling fs layer
+63b69af3dc55: Pulling fs layer
+6ccef1045412: Pulling fs layer
+4f4fb700ef54: Already exists
+4f4fb700ef54: Pull complete
+91d5cceee199: Download complete
+6ccef1045412: Download complete
+789bb96d2ef6: Download complete
+60177795cab3: Download complete
+63b69af3dc55: Download complete
+63b69af3dc55: Pull complete
+6ccef1045412: Pull complete
+60177795cab3: Pull complete
+b44c500748de: Download complete
+b44c500748de: Pull complete
+Digest: sha256:af32e97399febea808609119bb21544d0265c58a02836576e32a2d082c262c17
+Status: Downloaded newer image for caddy:2.8.4-alpine
+== 啟動正式設定
+ Container travelprod-prometheus-1 Started 
+ Container travelprod-grafana-1 Starting 
+ Container travelprod-grafana-1 Started 
+== 對外開放的埠號（應該只有 Caddy 的 8180）
+travelprod 沒有任何對外埠號
+== 等系統就緒
+{"status":"ok"}
+== 開始記錄記憶體（每 2 秒）
+== 全部測試（在正式設定、有記憶體上限的環境）
+api_test：68/68 通過
+auth_test：27/27 通過
+partner_test：21/21 通過
+agent_test：29/29 通過
+multi_agent_test：24/24 通過
+procurement_test：32/32 通過
+automation_test：11/11 通過
+eval_test：15/15 通過
+rag_eval：第 1 名命中：14/16　前 3 名命中：16/16（其中已知弱點未命中 0 題）　無關問題回空：2/2
+monitor_test：21/21 通過
+opendata_test：23/23 通過
+crawler_test：19/19 通過
+api_matrix_test：22/22 通過
+mcp_test：15/15 通過
+== 經過 Caddy 的畫面測試（和客人走同一條路）
+開放資料： 有
+前台畫面測試全部通過
+== 壓力測試：經過 Caddy，模擬多人同時使用
+20 人同時、60 秒：共 9486 次請求（每秒約 158 次），錯誤 0 次
+動作           次數     P50     P95      最慢 錯誤
+首頁         1893   0.08s   0.16s   0.28s 0
+查行程        1896   0.09s   0.14s   0.26s 0
+試算報價       1900   0.11s   0.17s   0.32s 0
+查景點        1904   0.18s   0.27s   0.39s 0
+搜尋規定       1893   0.14s   0.20s   0.32s 0
+壓力測試：通過
+== 有沒有容器因記憶體不足被砍掉（OOMKilled）
+travelprod-grafana-1 false 重啟次數=0
+travelprod-prometheus-1 false 重啟次數=0
+travelprod-mcp-1 false 重啟次數=0
+travelprod-website-1 false 重啟次數=0
+travelprod-app-1 false 重啟次數=0
+travelprod-alertmanager-1 false 重啟次數=0
+travelprod-mailpit-1 false 重啟次數=0
+travelprod-db-1 false 重啟次數=0
+travelprod-n8n-1 false 重啟次數=0
+travelprod-erp-1 false 重啟次數=0
+travelprod-supplier-1 false 重啟次數=0
+== 記憶體尖峰（MB）
+travelprod-app-1                     791
+travelprod-n8n-1                     434
+voldemo-complete-backend-1           289
+travelprod-db-1                       91
+travelprod-grafana-1                  71
+travelprod-mcp-1                      45
+travelprod-erp-1                      38
+travelprod-supplier-1                 37
+voldemo-complete-postgres-1           35
+travelprod-website-1                  33
+rehearsal-caddy                       27
+travelprod-prometheus-1               26
+travelprod-mailpit-1                  22
+travelprod-alertmanager-1             15
+voldemo-complete-frontend-1           14
+travelprod 合計尖峰：1561 MB

@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 from . import quotes
-from .db import query
+from .db import connect, query
 
 DEMO_KEY = os.environ.get("PARTNER_DEMO_KEY", "")
 
@@ -99,15 +99,26 @@ def require_partner(request: Request, x_api_key: str = Header(default="", descri
     if not rows or not rows[0]["is_active"]:
         raise HTTPException(401, "API 金鑰無效或已停用")
     partner = rows[0]
-    used = query(
-        "SELECT count(*) AS n FROM partner_calls WHERE partner_id = %s AND created_at > now() - interval '60 seconds'",
-        (partner["id"],),
-    )[0]["n"]
     request.state.partner_id = partner["id"]
+    # 「數次數＋登記這次」在同一個交易裡、先鎖住這個合作夥伴：同時湧入的請求要排隊數，
+    # 不會好幾個請求同時看到「還沒滿」而多放（人工驗收發現上限 60 實際放行 69 次）。
+    with connect() as conn:
+        conn.execute("SELECT id FROM partners WHERE id = %s FOR UPDATE", (partner["id"],))
+        used = conn.execute(
+            """SELECT count(*) AS n FROM partner_calls
+               WHERE partner_id = %s AND status <> 429 AND created_at > now() - interval '60 seconds'""",
+            (partner["id"],),
+        ).fetchone()["n"]
+        if used < partner["rate_limit_per_minute"]:
+            # 先佔一筆紀錄（狀態 0＝處理中），回應後再補上真正的狀態碼
+            request.state.call_id = conn.execute(
+                "INSERT INTO partner_calls (partner_id, method, path, status) VALUES (%s, %s, %s, 0) RETURNING id",
+                (partner["id"], request.method, request.url.path),
+            ).fetchone()["id"]
+            conn.execute("UPDATE partners SET last_used_at = now() WHERE id = %s", (partner["id"],))
     if used >= partner["rate_limit_per_minute"]:
         raise HTTPException(429, f"呼叫太頻繁：每分鐘上限 {partner['rate_limit_per_minute']} 次",
                             headers={"Retry-After": "60"})
-    query("UPDATE partners SET last_used_at = now() WHERE id = %s RETURNING id", (partner["id"],))
     return partner
 
 
@@ -116,7 +127,10 @@ async def log_calls(request: Request, call_next):
     """每次呼叫記錄路徑與結果（含被擋下的 429），用來算呼叫上限與給管理員查看。"""
     response = await call_next(request)
     partner_id = getattr(request.state, "partner_id", None)
-    if partner_id:
+    call_id = getattr(request.state, "call_id", None)
+    if call_id:
+        query("UPDATE partner_calls SET status = %s WHERE id = %s RETURNING id", (response.status_code, call_id))
+    elif partner_id:
         query(
             "INSERT INTO partner_calls (partner_id, method, path, status) VALUES (%s, %s, %s, %s) RETURNING id",
             (partner_id, request.method, request.url.path, response.status_code),

@@ -1,11 +1,12 @@
 """多 Agent 協作版 AI 客服：用 LangGraph 編排，每個 Agent 仍用官方 Anthropic SDK 呼叫 Claude。
 
 流程（一張有向圖）：
-  分流 Agent ─┬→ 報價專員 ─┐
-              ├→ 規定專員 ─┼→ 檢查員 ──通過──→ 組合回覆
-              └→ 接待專員 ─┘      └─不通過→ 退回原專員改一次（最多一次）
+  分流 Agent ─┬→ 報價專員 ─（也問規定時）→ 規定專員 ─┐
+              ├→ 規定專員 ────────────────────────────┼→ 檢查員 ──通過──→ 組合回覆
+              └→ 接待專員 ────────────────────────────┘      └─不通過→ 退回原專員改一次（最多一次）
 
-- 分流 Agent：只判斷這句話要交給誰，可以同時交給報價與規定兩位（平行執行）。
+- 分流 Agent：只判斷這句話要交給誰。報價和規定都問時，規定專員排在報價專員後面，拿報價結果算退費；
+  其他組合平行執行。
 - 專員：各自只拿到自己需要的工具，權限最小。
 - 檢查員：不呼叫 AI，用程式檢查金額有沒有出現在工具結果裡、規定有沒有附條號、有沒有性別稱謂；
   不通過就把問題寫給專員重答，第二次還不通過就改成轉專人，不讓錯的金額送到客人面前。
@@ -59,6 +60,8 @@ ROLES = {
 ORDER = ["quote", "policy", "reception"]
 HONORIFICS = re.compile(r"先生|小姐|女士")
 MONEY = re.compile(r"NT\$\s?([\d,]+)")
+GREETING = re.compile(r"^\s*您好[，,！!。]\s*")
+PER_PERSON_ROOM = re.compile(r"每人每晚|每晚每人")
 CLAIMS_HANDOFF = re.compile(r"(已|已經|幫您|為您)\S{0,4}(轉給|轉交|轉接)|轉接單")
 
 
@@ -116,6 +119,11 @@ def make_specialist(key):
         task = state["route"].get("tasks", {}).get(key)
         content = state["message"] if not task or task == state["message"] else (
             f"{task}\n\n（只處理上面這段。客人原話：「{state['message']}」，人數、金額、日期以原話為準。）")
+        quoted = [t["output"] for t in state.get("tool_log", []) if t["tool"] == "calculate_quote" and not t["is_error"]]
+        if key == "policy" and quoted:
+            # 報價專員先算好了，規定專員直接拿總價算退費，不用再跟客人要
+            content += (f"\n\n（報價專員已算好的報價：{json.dumps(quoted, ensure_ascii=False, default=str)}。"
+                        "要算退費就用這裡的 total_price 交給 calculate_refund，不要再請客人提供總價。）")
         if key in state.get("feedback", {}):
             content += f"\n\n（系統檢查員：你上一版回答有問題，請修正後重答：{state['feedback'][key]}）"
         messages = state["history"] + [{"role": "user", "content": content}]
@@ -159,6 +167,8 @@ def review(state):
                            for t in state.get("tool_log", []) if t["agent"] == label)
         if found_policy and not re.search(r"第\s?\d+\s?條", text):
             issues.append("回答規定時要註明出處，例如（取消與退費規定 第3條）")
+        if PER_PERSON_ROOM.search(text):
+            issues.append("飯店房價是每間每晚，不可寫成每人每晚")
         if HONORIFICS.search(text):
             issues.append("不要使用先生、小姐、女士等稱謂")
         handed_off = any(t["tool"] == "request_human" and not t["is_error"]
@@ -193,7 +203,27 @@ def after_review(state):
 
 def compose(state):
     parts = [state["drafts"][k] for k in ORDER if k in state["drafts"]]
+    # 合併成一則訊息，只保留第一個「您好」，後面段落開頭的拿掉，問候只說一次（I6 重測發現）
+    greeted, merged = False, []
+    for part in parts:
+        if GREETING.match(part):
+            part = GREETING.sub("", part, count=1) if greeted else part
+            greeted = True
+        merged.append(part)
+    parts = merged
     return {"reply": "\n\n".join(parts), "path": [{"agent": "組合回覆", "detail": f"合併 {len(parts)} 位專員的回答"}]}
+
+
+def first_wave(state):
+    """同時問報價和規定時，規定專員等報價專員算完再上場（退費要用總價）；其他專員照樣平行。"""
+    agents = state["route"]["agents"]
+    return [a for a in agents if not (a == "policy" and "quote" in agents)]
+
+
+def after_quote(state):
+    if "policy" in state["route"]["agents"] and "policy" not in state.get("drafts", {}):
+        return "policy"
+    return "reviewer"
 
 
 def build():
@@ -201,11 +231,13 @@ def build():
     graph.add_node("router", router)
     for key in ORDER:
         graph.add_node(key, make_specialist(key))
-    graph.add_node("reviewer", reviewer)
+    # defer：等所有專員（包含排在報價後面的規定專員）都做完才檢查，只檢查一次
+    graph.add_node("reviewer", reviewer, defer=True)
     graph.add_node("compose", compose)
     graph.add_edge(START, "router")
-    graph.add_conditional_edges("router", lambda s: s["route"]["agents"], ORDER)
-    for key in ORDER:
+    graph.add_conditional_edges("router", first_wave, ORDER)
+    graph.add_conditional_edges("quote", after_quote, ["policy", "reviewer"])
+    for key in ["policy", "reception"]:
         graph.add_edge(key, "reviewer")
     graph.add_conditional_edges("reviewer", after_review, ORDER + ["compose"])
     graph.add_edge("compose", END)

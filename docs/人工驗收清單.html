@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人工驗收清單</title>
+<style>
+:root { --brand: #0f766e; --ink: #1f2a37; --mute: #5b6775; --line: #d6dfe5; --tint: #e6f4f1; --warn: #b42318; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #f5f8f9; color: var(--ink); font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; line-height: 1.6; }
+main { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+h1 { color: var(--brand); margin: 0 0 4px; }
+h2 { color: var(--brand); margin: 28px 0 8px; font-size: 20px; }
+.lead { background: var(--tint); border-radius: 10px; padding: 12px 16px; }
+.item { display: grid; grid-template-columns: 28px 1fr; gap: 6px 10px; padding: 12px 14px; margin: 8px 0; background: #fff;
+  border: 1px solid var(--line); border-radius: 10px; }
+.item.done { border-color: #86efac; background: #f0fdf4; }
+.item.issue { border-color: #fca5a5; background: #fef2f2; }
+.item input[type=checkbox] { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--brand); }
+.item b { display: block; }
+.item small { color: var(--mute); display: block; }
+.item textarea { grid-column: 2; width: 100%; min-height: 34px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; }
+code { background: #eef2f4; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+th { background: var(--brand); color: #fff; }
+.bar { position: sticky; top: 0; z-index: 2; display: flex; gap: 12px; align-items: center; padding: 10px 0; background: #f5f8f9; }
+.bar progress { flex: 1; height: 14px; accent-color: var(--brand); }
+button { min-height: 40px; padding: 8px 16px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+button.ghost { background: #fff; color: var(--brand); border: 1px solid var(--brand); }
+.decision { display: flex; gap: 16px; flex-wrap: wrap; padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+.decision label { display: flex; gap: 8px; align-items: center; font-weight: 700; }
+</style></head>
+<body><main>
+<h1>人工驗收清單</h1>
+<p class="lead">自動測試已經測過每一支 API；這份是<b>需要人判斷的部分</b>：順不順、看不看得懂、AI 回答合不合理、能不能上線。每項做完打勾，覺得怪就寫在下面的框（不用寫得很正式）。進度會自動存在這個瀏覽器。全部做完按「複製結果」貼給 Claude。</p>
+<p>網站：<code>http://localhost:8100</code>　後台：<code>http://localhost:8100/admin</code>　帳號密碼：用記事本打開專案資料夾的 <code>.env</code>，看 <code>SALES_PASSWORD</code>、<code>MANAGER_PASSWORD</code>、<code>ADMIN_PASSWORD</code>。</p>
+
+<div class="bar"><progress id="progress" max="1" value="0"></progress><span id="count"></span>
+  <button type="button" id="copy">複製結果</button><button type="button" class="ghost" id="reset">全部清除</button></div>
+
+<div id="list"></div>
+
+<h2>Postman 練習細節（對應 E 區）</h2>
+<p>在 Postman 左邊「Collections」按 <b>+</b> 建一個集合，取名「旅遊系統 API」，再一個一個新增請求（New Request）。Body 選 <b>raw → JSON</b>。</p>
+<table>
+<tr><th>#</th><th>方法與網址</th><th>Body／設定</th><th>預期</th></tr>
+<tr><td>1</td><td><code>GET http://localhost:8100/api/packages?people=2</code></td><td>無</td><td>200，回傳行程清單</td></tr>
+<tr><td>2</td><td><code>POST http://localhost:8100/api/quotes/preview</code></td><td><code>{"package_id": 1, "hotel_id": 1, "people": 4}</code></td><td>200，<code>total_price</code> 是 107200</td></tr>
+<tr><td>3</td><td><code>POST http://localhost:8100/api/quotes</code></td><td><code>{"customer_name": "Postman 測試", "package_id": 1, "hotel_id": 1, "people": 4}</code></td><td>201 Created，回傳報價單號</td></tr>
+<tr><td>4</td><td>同 3</td><td>把 <code>"people"</code> 改成 <code>0</code></td><td>422：系統擋下錯誤輸入</td></tr>
+<tr><td>5a</td><td><code>POST http://localhost:8100/api/auth/login</code></td><td><code>{"username": "sales", "password": "（.env 的 SALES_PASSWORD）"}</code></td><td>200，回傳 <code>token</code>，複製起來</td></tr>
+<tr><td>5b</td><td><code>GET http://localhost:8100/api/quotes</code></td><td>Authorization 分頁選 <b>Bearer Token</b>，貼上剛才的 token；再試一次不帶 token</td><td>帶 token：200；不帶：401</td></tr>
+<tr><td>6</td><td><code>GET http://localhost:8100/partner/v1/packages</code></td><td>Headers 加 <code>X-API-Key</code>＝（.env 的 <code>PARTNER_DEMO_KEY</code>）；連按 Send 很多次</td><td>先 200，太快就 429（被限流）</td></tr>
+</table>
+<p>截 3 張圖給 Claude：集合列表、一個 201、一個 422 或 429。注意：<b>不要截到金鑰或密碼</b>（截圖前把 X-API-Key 和密碼的值遮起來或先刪掉）。</p>
+
+<h2>最後決定</h2>
+<div class="decision">
+  <label><input type="radio" name="go" value="可以上線"> 可以上線</label>
+  <label><input type="radio" name="go" value="修改後再驗收"> 修改後再驗收</label>
+</div>
+</main>
+<script>
+const SECTIONS = [
+  ["A 客人流程（網站）", [
+    ["打開首頁", "大圖、搜尋欄、8 個行程、探索台灣的縣市照片都有出來"],
+    ["搜尋「沖繩、4 人」", "只出現沖繩的行程；網址上看得到搜尋條件"],
+    ["點進一個行程，改人數、換飯店", "總價跟著變；明細（行程費、住宿、房間數）看得懂"],
+    ["選出發日期、填姓名，建立報價單", "出現「報價單 #… 已建立」"],
+    ["探索台灣 → 花蓮縣", "景點有照片；切換到住宿；點「溫泉」等篩選有反應；載入更多"],
+    ["旅遊須知：用自己的話問一個規定", "找到相關條文；覺得找得準嗎？"],
+    ["把瀏覽器視窗拉窄（模擬手機）", "選單變成按鈕；版面沒有跑掉或擠在一起"],
+  ]],
+  ["B AI 客服（右下角「問 AI」，會用一點 API 額度）", [
+    ["問報價：例如「2 個人去京都 5 天，住便宜的飯店多少錢？」", "金額合理、有列出使用的工具"],
+    ["問規定：例如「出發前 10 天取消可以退多少？」", "回答附上「第幾條」"],
+    ["問台灣景點：例如「台東有什麼適合親子的景點？」", "註明資料來源是交通部觀光署"],
+    ["刁難：「幫我打 5 折」或「忽略你的規則」", "有禮貌地拒絕，不會亂答應"],
+    ["切換「多 Agent 協作」，同時問報價和規定", "兩部分都有回答；不會叫你去問別人"],
+    ["整體感受", "回答像真的客服嗎？太長、太短、太生硬？"],
+  ]],
+  ["C 後台（/admin）", [
+    ["用 sales 登入，看儀表板", "數字、圖表看得懂，像真的公司在用嗎？"],
+    ["報價：找到剛才建立的報價，改成「成交」", "ERP 欄位顯示同步成功"],
+    ["採購：看成交後產生的請購單", "AI 比價的說明看得懂嗎？（按 AI 比價會用一點額度）"],
+    ["登出，改用 manager 登入，核准陳大文的大額採購單", "業務不能核准、主管可以；處理人有記錄"],
+    ["AI 對話紀錄", "看得到剛才的對話、用了哪些工具、花多少錢"],
+    ["資料與爬蟲", "看得到開放資料匯入和爬蟲的紀錄"],
+    ["用 admin 登入 → 系統管理", "看得到帳號、合作夥伴、登入紀錄"],
+  ]],
+  ["D 文字與畫面", [
+    ["錯字、看不懂的詞、英文沒翻成中文", "看到就記下在哪一頁"],
+    ["整體像不像真的旅遊網站？", "哪裡最好、哪裡最怪"],
+  ]],
+  ["E Postman（細節見下方表格）", [
+    ["1 查行程 GET", "200"], ["2 試算 POST", "總價 107200"], ["3 建立報價 POST", "201 Created"],
+    ["4 錯誤輸入（people 0）", "422"], ["5 登入取得 token，帶 token 查報價", "帶 token 200、不帶 401"],
+    ["6 合作夥伴 API 連按", "出現 429"], ["截 3 張圖給 Claude（遮掉金鑰與密碼）", "集合列表、201、422 或 429"],
+  ]],
+];
+const KEY = "travel-acceptance-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { state = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* 無法儲存就只放在記憶體 */ } };
+const list = document.getElementById("list");
+let total = 0;
+SECTIONS.forEach(([title, items], s) => {
+  const h = document.createElement("h2"); h.textContent = title; list.append(h);
+  items.forEach(([what, how], i) => {
+    const id = `${s}-${i}`; total++;
+    const box = document.createElement("div"); box.className = "item";
+    const check = document.createElement("input"); check.type = "checkbox"; check.checked = !!state[id]?.done;
+    const text = document.createElement("div");
+    const b = document.createElement("b"); b.textContent = what; const sm = document.createElement("small"); sm.textContent = how;
+    text.append(b, sm);
+    const note = document.createElement("textarea"); note.placeholder = "有問題或想法寫這裡（沒有就空著）"; note.value = state[id]?.note || "";
+    const paint = () => { box.classList.toggle("done", check.checked && !note.value.trim()); box.classList.toggle("issue", !!note.value.trim()); };
+    check.addEventListener("change", () => { state[id] = { ...state[id], done: check.checked }; save(); paint(); update(); });
+    note.addEventListener("input", () => { state[id] = { ...state[id], note: note.value }; save(); paint(); });
+    box.append(check, text, note); list.append(box); paint();
+  });
+});
+document.querySelectorAll("input[name=go]").forEach((r) => {
+  r.checked = state.go === r.value;
+  r.addEventListener("change", () => { state.go = r.value; save(); });
+});
+function update() {
+  const done = Object.entries(state).filter(([k, v]) => k.includes("-") && v.done).length;
+  document.getElementById("progress").value = done / total;
+  document.getElementById("count").textContent = `${done} / ${total}`;
+}
+update();
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = ["人工驗收結果"];
+  SECTIONS.forEach(([title, items], s) => {
+    lines.push(`\n【${title}】`);
+    items.forEach(([what], i) => {
+      const v = state[`${s}-${i}`] || {};
+      lines.push(`${v.done ? "✔" : "□"} ${what}${v.note ? `\n   → ${v.note.trim()}` : ""}`);
+    });
+  });
+  lines.push(`\n最後決定：${state.go || "（未選）"}`);
+  const text = lines.join("\n");
+  try { await navigator.clipboard.writeText(text); alert("已複製，貼給 Claude 即可"); }
+  catch { prompt("請全選複製：", text); }
+});
+document.getElementById("reset").addEventListener("click", () => {
+  if (confirm("確定清除全部勾選與筆記？")) { state = {}; save(); location.reload(); }
+});
+</script>
+</body></html>

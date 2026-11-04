@@ -1,0 +1,32 @@
+# 正式環境（公開網址）用的覆蓋設定：docker compose -f docker-compose.yml -f docker-compose.prod.yml ...
+# 1. 所有服務都不對外開埠號，只有主機上的 Caddy 能把公開網址轉給 app
+# 2. 每個服務限制記憶體，加總約 2.7 GB（主機 4 GB，揮發度系統已用約 1.1 GB）
+# 3. AI 每日上限調低（公開網站任何人都能用）
+services:
+  app:
+    ports: !reset []
+    mem_limit: 1024m   # 預演尖峰 791 MB，留 20% 以上餘裕
+    environment:
+      DAILY_CHAT_LIMIT: ${DAILY_CHAT_LIMIT:-50}
+      DAILY_COST_LIMIT_USD: ${DAILY_COST_LIMIT_USD:-0.30}
+    networks: [default, edge]
+  db: { mem_limit: 256m }
+  erp: { ports: !reset [], mem_limit: 128m }
+  website: { ports: !reset [], mem_limit: 128m }
+  supplier: { ports: !reset [], mem_limit: 128m }
+  mcp: { ports: !reset [], mem_limit: 128m }
+  mailpit: { ports: !reset [], mem_limit: 64m }
+  n8n:
+    ports: !reset []
+    mem_limit: 512m
+    environment:
+      SITE_URL: ${PUBLIC_URL:-https://travel.example}
+  prometheus: { ports: !reset [], mem_limit: 192m }
+  alertmanager: { ports: !reset [], mem_limit: 64m }
+  grafana: { ports: !reset [], mem_limit: 192m }
+
+# edge：和 Caddy 共用的網路（正式主機上是揮發度系統的 voldemo_default）
+networks:
+  edge:
+    name: ${EDGE_NETWORK:-voldemo_default}
+    external: true

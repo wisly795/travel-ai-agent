@@ -30,7 +30,7 @@ export default function Evals({ hidden, staffApi, action, version, session, onEr
                   onClick={() => run("multi")}>評測多 Agent 版</button>
         </div>
       </div>
-      <p className="hint">20 題標準問答，用程式規則自動評分：金額是否正確、是否附條文出處、是否用對工具、該拒絕時是否拒絕、稱謂是否正確。改 AI 規則或換模型前後各跑一次，用數字確認有沒有變好。只有管理員能執行。</p>
+      <p className="hint">23 題標準問答（含人工驗收發現的問題），用程式規則自動評分：金額是否正確、是否附條文出處、是否用對工具、該拒絕時是否拒絕、稱謂是否正確。改 AI 規則或換模型前後各跑一次，用數字確認有沒有變好。只有管理員能執行。</p>
       <div id="eval-summary" className="stats">
         {data && !latest && <p>還沒有評測紀錄。</p>}
         {latest && [

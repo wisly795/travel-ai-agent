@@ -103,6 +103,7 @@ input, select {
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.cell-note { display: block; color: var(--muted, #667); font-size: 13px; }
 .message { color: var(--warn); font-weight: 700; }
 
 #staff-form label { margin-bottom: 12px; }

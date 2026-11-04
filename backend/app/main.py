@@ -533,16 +533,18 @@ def erp_fail_mode(request: FailModeRequest):
 
 @app.get("/api/admin/turns", dependencies=[Depends(require_staff)])
 def ai_turns(limit: int = Query(default=30, ge=1, le=200)):
-    """AI 對話紀錄：每次提問、回答、用了哪些工具、花多少錢。"""
+    """AI 對話紀錄：每次提問、回答、用了哪些工具、花多少錢。speaker 是提問的一方：客人或採購系統。"""
     return query(
         """
         SELECT t.id, t.conversation_id, t.user_message, t.reply, t.model,
                t.input_tokens, t.output_tokens, t.cost_usd, t.created_at, t.agent_path,
+               CASE WHEN v.mode = 'procurement' OR t.user_message LIKE '【採購】%%' THEN '採購系統' ELSE '客人' END AS speaker,
                coalesce(json_agg(json_build_object('tool', c.tool, 'input', c.input,
                         'output', c.output, 'is_error', c.is_error, 'agent', c.agent) ORDER BY c.id)
                         FILTER (WHERE c.id IS NOT NULL), '[]') AS tools
-        FROM ai_turns t LEFT JOIN ai_tool_calls c ON c.turn_id = t.id
-        GROUP BY t.id ORDER BY t.id DESC LIMIT %s
+        FROM ai_turns t LEFT JOIN conversations v ON v.id = t.conversation_id
+        LEFT JOIN ai_tool_calls c ON c.turn_id = t.id
+        GROUP BY t.id, v.mode ORDER BY t.id DESC LIMIT %s
         """,
         (limit,),
     )
@@ -565,7 +567,7 @@ class EvalRunRequest(BaseModel):
 
 @app.post("/api/admin/evals/run", status_code=202)
 def eval_run(request: EvalRunRequest | None = None, who: dict = Depends(require_admin)):
-    """管理員觸發 AI 評測（20 題，約 1–2 分鐘，會花少量 API 額度），在背景執行。"""
+    """管理員觸發 AI 評測（23 題，約 1–2 分鐘，會花少量 API 額度），在背景執行。"""
     mode = request.mode if request else "single"
     try:
         agent.check_limits(None)

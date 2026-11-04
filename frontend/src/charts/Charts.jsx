@@ -73,7 +73,8 @@ export function Columns({ rows, value, label, format, tipLabel }) {
                 <path className="bar"
                       d={`M${x},${top + plotH} V${y + r} Q${x},${y} ${x + r},${y} H${x + barW - r} Q${x + barW},${y} ${x + barW},${y + r} V${top + plotH} Z`} />
               )}
-              {(i % every === 0 || i === rows.length - 1) && (
+              {/* 從最後一天往前每隔 every 天標一個日期：今天一定有標，而且間距固定、不會兩個疊在一起 */}
+              {(rows.length - 1 - i) % every === 0 && (
                 <text x={x + barW / 2} y={height - 8} className="tick" textAnchor="middle">{label(row)}</text>
               )}
               {/* 滑鼠感應區比柱子大（整個欄位） */}

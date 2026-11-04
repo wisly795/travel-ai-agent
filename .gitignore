@@ -20,3 +20,4 @@ models/*
 !models/README.md
 ci-shots/
 ci.env
+prod.env

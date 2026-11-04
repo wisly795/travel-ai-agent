@@ -4,6 +4,7 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
 from app import quotes
@@ -92,6 +93,17 @@ check("429 附上 Retry-After", headers.get("Retry-After") == "60" or headers.ge
 logged = query("SELECT count(*) AS n FROM partner_calls WHERE partner_id = %s AND status = 429", (other["id"],))[0]["n"]
 check("被限流的呼叫也有紀錄", logged >= 1)
 
+# 4b. 同時大量呼叫也不能多放（I6 人工驗收問題 7：上限 60 實際放行 69）
+status, burst, _ = call("POST", "/api/admin/partners", {"name": "同時呼叫測試", "rate_limit_per_minute": 10}, bearer=admin)
+with ThreadPoolExecutor(max_workers=20) as pool:
+    burst_codes = list(pool.map(lambda _: call("GET", "/partner/v1/destinations", key=burst["api_key"])[0], range(20)))
+check("20 個請求同時送、上限 10：剛好放行 10 次", burst_codes.count(200) == 10 and burst_codes.count(429) == 10,
+      f"200×{burst_codes.count(200)}、429×{burst_codes.count(429)}")
+pending = query("SELECT count(*) AS n FROM partner_calls WHERE partner_id = %s AND status = 0", (burst["id"],))[0]["n"]
+check("紀錄都補上了真正的狀態碼（沒有停在處理中）", pending == 0, f"處理中 {pending} 筆")
+query("DELETE FROM partner_calls WHERE partner_id = %s RETURNING id", (burst["id"],))
+query("DELETE FROM partners WHERE id = %s RETURNING id", (burst["id"],))
+
 # 5. 停用
 call("PATCH", f"/api/admin/partners/{other['id']}", {"is_active": False}, bearer=admin)
 status, _, _ = call("GET", "/partner/v1/destinations", key=other["api_key"])
@@ -103,7 +115,10 @@ check("合作夥伴 API 文件", status == 200 and "/v1/quotes" in spec["paths"]
 status, _, _ = call("GET", "/openapi.json")
 check("主系統 API 文件仍然關閉", status == 404)
 
-# 清掉測試合作夥伴
+# 清掉測試合作夥伴與測試報價單（不在開發版留下「官網客人」，I6 發現）
+query("DELETE FROM notifications WHERE dedupe_key = %s RETURNING id", (f"quote-{created['id']}",))
+query("DELETE FROM quote_events WHERE quote_id = %s RETURNING id", (created["id"],))
+query("DELETE FROM quotes WHERE id = %s RETURNING id", (created["id"],))
 query("DELETE FROM partner_calls WHERE partner_id = %s RETURNING id", (other["id"],))
 query("DELETE FROM partners WHERE id = %s RETURNING id", (other["id"],))
 

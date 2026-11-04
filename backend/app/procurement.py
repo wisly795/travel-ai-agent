@@ -216,7 +216,7 @@ def analyze(request_id):
     agent.check_limits(None)
     agent.get_client()
     conversation_id = uuid.uuid4()
-    query("INSERT INTO conversations (id) VALUES (%s) RETURNING id", (conversation_id,))
+    query("INSERT INTO conversations (id, mode) VALUES (%s, 'procurement') RETURNING id", (conversation_id,))
     message = f"請處理請購單 #{request_id}：比價並建立採購單草稿。"
     messages = [{"role": "user", "content": message}]
     result, reply, usage, tool_log = agent.run_loop(
