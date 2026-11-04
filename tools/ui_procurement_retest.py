@@ -33,7 +33,7 @@ with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get("CHROME"), args=["--no-sandbox"])
     page = browser.new_page(viewport={"width": 1280, "height": 1000})
     page.goto(BASE + "/")
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#staff-token", STAFF)
     page.click("#staff-form button")
     page.wait_for_selector("#staff-result:not([hidden])")

@@ -3,8 +3,10 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { compact, niceMax, Columns, Share } from "./charts/Charts.jsx";
+import { MemoryRouter, Outlet, Route, Routes } from "react-router-dom";
 import Chat from "./Chat.jsx";
-import Customer from "./Customer.jsx";
+import TourDetail from "./site/TourDetail.jsx";
+import Tours from "./site/Tours.jsx";
 
 // 測試環境（jsdom）沒有「捲動到元素」，補一個空的版本
 Element.prototype.scrollIntoView = () => {};
@@ -70,20 +72,50 @@ describe("AI 客服", () => {
   });
 });
 
-describe("查行程", () => {
-  it("查詢後顯示行程卡片，選擇後出現報價表單", async () => {
-    mockFetch({
-      "/api/destinations": ["沖繩"],
-      "/api/packages": [{ id: 1, name: "海島放鬆 4 日", destination: "沖繩", days: 4, seats_left: 18, description: "水族館", price_per_person: 22000 }],
-      "/api/hotels": [{ id: 1, name: "海風飯店", room_type: "雙人房", price_per_night: 3200 }],
+const TOUR = { id: 1, name: "海島放鬆 4 日", destination: "沖繩", days: 4, seats_left: 18, description: "水族館", price_per_person: 22000 };
+
+describe("精選行程", () => {
+  it("依網址上的條件查詢，顯示行程卡片與連結", async () => {
+    let asked = "";
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      if (String(url).startsWith("/api/packages")) asked = String(url);
+      return { ok: true, json: async () => (String(url).startsWith("/api/packages") ? [TOUR] : ["沖繩"]) };
     });
-    const { container } = render(<Customer hidden={false} onError={() => {}} />);
-    fireEvent.click(screen.getByText("查詢"));
+    const { container } = render(
+      <MemoryRouter initialEntries={["/tours?destination=沖繩&people=4"]}><Routes><Route path="/tours" element={<Tours />} /></Routes></MemoryRouter>,
+    );
     await screen.findByText("海島放鬆 4 日");
-    expect(screen.getByText("NT$ 22,000 / 人")).toBeTruthy();
-    expect(container.querySelector("#quote-form").hidden).toBe(true);
-    fireEvent.click(screen.getByText("選擇"));
-    await waitFor(() => expect(container.querySelector("#quote-form").hidden).toBe(false));
-    expect(screen.getByText("海風飯店（雙人房，每晚 NT$ 3,200）")).toBeTruthy();
+    expect(decodeURIComponent(asked)).toContain("destination=沖繩");
+    expect(asked).toContain("people=4");
+    expect(container.querySelector("a.s-card").getAttribute("href")).toBe("/tours/1");
+    expect(screen.getByText("日本・沖繩")).toBeTruthy();
+  });
+});
+
+describe("行程詳細頁", () => {
+  it("選飯店、改人數就重新試算，價格來自後端", async () => {
+    const previews = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options) => {
+      const path = String(url);
+      if (path.startsWith("/api/quotes/preview")) {
+        const body = JSON.parse(options.body);
+        previews.push(body);
+        return { ok: true, json: async () => ({ people: body.people, rooms: 1, nights: 3, package_fee: 22000 * body.people,
+          hotel_fee: 9600, total_price: 22000 * body.people + 9600 }) };
+      }
+      const data = path.startsWith("/api/packages") ? [TOUR]
+        : path.startsWith("/api/hotels") ? [{ id: 1, name: "海風飯店", room_type: "雙人房", price_per_night: 3200 }]
+          : path.startsWith("/api/supplier-prices") ? { hotels: [] } : {};
+      return { ok: true, json: async () => data };
+    });
+    render(
+      <MemoryRouter initialEntries={["/tours/1"]}>
+        <Routes><Route element={<Outlet context={{ openChat: () => {} }} />}><Route path="/tours/:id" element={<TourDetail />} /></Route></Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByText("NT$ 53,600");
+    fireEvent.change(screen.getByLabelText("人數"), { target: { value: "1" } });
+    await screen.findByText("NT$ 31,600");
+    expect(previews.at(-1)).toMatchObject({ package_id: 1, hotel_id: 1, people: 1 });
   });
 });

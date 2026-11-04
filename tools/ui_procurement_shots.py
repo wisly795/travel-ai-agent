@@ -38,7 +38,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={"width": 1280, "height": 1000})
     page.on("dialog", lambda dialog: dialog.accept("想改成可以免費取消的方案"))
     page.goto(BASE + "/")
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#staff-token", STAFF)
     page.click("#staff-form button")
     page.wait_for_selector("#staff-result:not([hidden])")

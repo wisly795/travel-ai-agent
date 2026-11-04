@@ -14,6 +14,7 @@ export const TOOL_LABELS = {
   search_policy: "查規定",
   calculate_refund: "計算退費",
   request_human: "轉專人",
+  search_local_info: "查景點／住宿",
 };
 
 export const SOURCE_LABELS = { web: "網頁", ai: "AI 客服", partner: "官網串接" };

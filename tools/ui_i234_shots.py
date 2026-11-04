@@ -17,7 +17,7 @@ for folder in (I2, I3, I4):
 
 def login(page, user, password):
     page.goto(URL)
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#login-username", user)
     page.fill("#login-password", password)
     page.click("#staff-form button")

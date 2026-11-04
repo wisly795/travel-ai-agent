@@ -12,7 +12,7 @@ def login(browser, viewport):
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(URL)
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#login-username", "manager")
     page.fill("#login-password", PASSWORD)
     page.click("#staff-form button")

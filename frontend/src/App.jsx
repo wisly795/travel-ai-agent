@@ -1,51 +1,53 @@
-import React, { useEffect, useState } from "react";
-import { api } from "./api.js";
-import Chat from "./Chat.jsx";
-import Customer from "./Customer.jsx";
-import Policy from "./Policy.jsx";
+import React, { useState } from "react";
+import { Link, Route, Routes } from "react-router-dom";
 import Staff from "./staff/Staff.jsx";
+import Explore from "./site/Explore.jsx";
+import ExploreCity from "./site/ExploreCity.jsx";
+import Guide from "./site/Guide.jsx";
+import Home from "./site/Home.jsx";
+import Layout from "./site/Layout.jsx";
+import TourDetail from "./site/TourDetail.jsx";
+import Tours from "./site/Tours.jsx";
 
-const TABS = [
-  ["chat", "AI 客服"],
-  ["customer", "查行程"],
-  ["policy", "旅遊規定"],
-  ["staff", "業務後台"],
-];
-
+// 前台（旅遊網站）與後台（/admin）是兩個不同的版面
 export default function App() {
-  const [tab, setTab] = useState(null);
-  const [message, setMessage] = useState("");
-  const [chatStatus, setChatStatus] = useState(null);
-
-  // AI 客服有啟用就預設打開 AI 客服，否則打開查行程
-  useEffect(() => {
-    api("/api/chat/status")
-      .then((status) => { setChatStatus(status); setTab((current) => current || (status.enabled ? "chat" : "customer")); })
-      .catch(() => setTab((current) => current || "customer"));
-  }, []);
-
-  const choose = (name) => { setTab(name); setMessage(""); };
-
   return (
-    <>
+    <Routes>
+      <Route path="/admin" element={<AdminApp />} />
+      <Route element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="tours" element={<Tours />} />
+        <Route path="tours/:id" element={<TourDetail />} />
+        <Route path="explore" element={<Explore />} />
+        <Route path="explore/:city" element={<ExploreCity />} />
+        <Route path="guide" element={<Guide />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
+}
+
+function AdminApp() {
+  const [message, setMessage] = useState("");
+  return (
+    <div className="admin-app">
       <header>
-        <h1>旅遊行程報價系統</h1>
-        <p className="demo">模擬資料，非真實報價</p>
-        <nav>
-          {TABS.map(([name, label]) => (
-            <button key={name} id={`tab-${name}`} type="button" className={`tab${tab === name ? " active" : ""}`}
-                    onClick={() => choose(name)}>{label}</button>
-          ))}
-        </nav>
+        <h1>晴空旅遊・業務後台</h1>
+        <p className="demo">模擬資料，非真實報價｜<Link to="/">回到網站</Link></p>
       </header>
       <main>
-        {/* 四個分頁都保持掛載，切換分頁時對話與查詢結果不會不見 */}
-        <Chat hidden={tab !== "chat"} status={chatStatus} />
-        <Customer hidden={tab !== "customer"} onError={setMessage} />
-        <Policy hidden={tab !== "policy"} onError={setMessage} />
-        <Staff hidden={tab !== "staff"} onError={setMessage} />
+        <Staff hidden={false} onError={setMessage} />
         <p id="message" className="message" role="alert" hidden={!message}>{message}</p>
       </main>
-    </>
+    </div>
+  );
+}
+
+function NotFound() {
+  return (
+    <section className="s-container s-empty">
+      <h1>找不到這個頁面</h1>
+      <Link className="s-btn" to="/">回首頁</Link>
+    </section>
   );
 }

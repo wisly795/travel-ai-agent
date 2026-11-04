@@ -13,7 +13,7 @@ def login(browser, username, password=None, viewport=None):
     page = browser.new_context(viewport=viewport or {"width": 1280, "height": 900}).new_page()
     page.on("dialog", lambda dialog: dialog.accept())
     page.goto(URL)
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#login-username", username)
     page.fill("#login-password", password or PASSWORDS[username])
     page.click("#staff-form button")
@@ -39,7 +39,7 @@ with sync_playwright() as p:
     big.scroll_into_view_if_needed()
     page.screenshot(path=f"{OUT}/03_業務不能核准大額.png")
     page.reload()
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.wait_for_selector("#staff-result:not([hidden])")
     assert "示範業務" in page.inner_text("#whoami"), "重新整理後應該保持登入"
 

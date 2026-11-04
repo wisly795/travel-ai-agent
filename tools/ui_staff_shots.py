@@ -36,7 +36,7 @@ with sync_playwright() as p:
     page.click("#chat-new")
     ask(page, "我想把行程改到下個月，可以嗎？")
 
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#staff-token", TOKEN)
     page.click("#staff-form button")
     page.wait_for_selector("#staff-result:not([hidden])")
@@ -81,7 +81,7 @@ with sync_playwright() as p:
 
     phone = browser.new_page(viewport={"width": 375, "height": 812})
     phone.goto(URL)
-    phone.click("#tab-staff")
+    phone.goto(URL + "admin")
     phone.fill("#staff-token", TOKEN)
     phone.click("#staff-form button")
     phone.wait_for_selector("#staff-result:not([hidden])")

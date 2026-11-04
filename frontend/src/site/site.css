@@ -1,0 +1,205 @@
+/* 晴空旅遊前台。顏色、圓角、陰影都用變數，改品牌只要改這裡 */
+.site {
+  --s-ink: #0f2a3a;
+  --s-mute: #566877;
+  --s-brand: #0e7490;
+  --s-brand-dark: #155e75;
+  --s-sun: #f59e0b;
+  --s-cta: #ea580c;
+  --s-bg: #f6f9fa;
+  --s-line: #e1e8ec;
+  --s-radius: 16px;
+  --s-shadow: 0 6px 24px rgba(15, 42, 58, .08);
+  background: var(--s-bg);
+  color: var(--s-ink);
+  min-height: 100vh;
+}
+.site h1, .site h2, .site h3 { color: var(--s-ink); }
+.site a { color: inherit; }
+.s-container { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+
+/* ---------- 導覽列 ---------- */
+.s-nav { position: sticky; top: 0; z-index: 30; background: rgba(255, 255, 255, .94); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--s-line); }
+.s-nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.s-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 800; text-decoration: none;
+  letter-spacing: .04em; color: var(--s-brand-dark); }
+.s-logo-mark { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fde68a, var(--s-sun) 60%, #f97316);
+  box-shadow: 0 0 0 4px #fef3c7; }
+.s-links { display: flex; align-items: center; gap: 4px; overflow: visible; }
+.s-links a { padding: 8px 14px; border-radius: 999px; text-decoration: none; font-weight: 600; color: var(--s-mute); }
+.s-links a:hover { color: var(--s-brand); background: #ecfeff; }
+.s-links a.active { color: var(--s-brand-dark); background: #e0f2f1; }
+.s-links .s-staff-link { margin-left: 8px; border: 1px solid var(--s-line); font-size: 14px; }
+.site .s-menu-btn { display: none; min-height: 40px; padding: 4px 12px; background: transparent; color: var(--s-ink); font-size: 22px; }
+
+/* ---------- 按鈕、標籤 ---------- */
+.s-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; padding: 10px 22px;
+  border-radius: 999px; background: var(--s-cta); color: #fff !important; font-weight: 700; text-decoration: none; border: 0;
+  cursor: pointer; font: inherit; font-weight: 700; transition: transform .15s, box-shadow .15s; }
+.s-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(234, 88, 12, .3); }
+.s-btn-ghost { background: #fff; color: var(--s-brand-dark) !important; border: 1px solid var(--s-line); }
+.s-btn-ghost:hover { box-shadow: var(--s-shadow); }
+.s-tag { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #e0f2f1; color: var(--s-brand-dark);
+  font-size: 13px; font-weight: 600; }
+.s-tag.warm { background: #fff7ed; color: #9a3412; }
+.s-price { font-size: 22px; font-weight: 800; color: var(--s-cta); }
+.s-price small { font-size: 14px; color: var(--s-mute); font-weight: 500; }
+.s-muted { color: var(--s-mute); }
+.s-note { font-size: 13px; color: var(--s-mute); }
+
+/* ---------- 首頁大圖 ---------- */
+.s-hero { position: relative; min-height: 560px; display: flex; align-items: center; overflow: hidden; color: #fff;
+  background: linear-gradient(135deg, #0e7490, #0f766e 50%, #f59e0b); }
+.s-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.s-hero::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(8, 30, 45, .78) 0%, rgba(8, 30, 45, .45) 55%, rgba(8, 30, 45, .15) 100%); }
+.s-hero-body { position: relative; z-index: 1; width: 100%; padding-top: 40px; padding-bottom: 40px; }
+.s-hero h1 { color: #fff; font-size: clamp(34px, 6vw, 58px); line-height: 1.15; margin: 0 0 14px; letter-spacing: .02em; }
+.s-hero p.lead { font-size: clamp(16px, 2.2vw, 20px); max-width: 560px; margin: 0 0 28px; opacity: .95; }
+.s-hero-credit { position: absolute; right: 12px; bottom: 8px; z-index: 1; font-size: 12px; opacity: .8; }
+.s-search { display: grid; grid-template-columns: 1.3fr 1fr 1fr auto; gap: 12px; align-items: end; max-width: 860px;
+  padding: 18px; border-radius: 20px; background: #fff; color: var(--s-ink); box-shadow: 0 18px 40px rgba(0, 0, 0, .25); }
+.s-search label { font-size: 13px; color: var(--s-mute); font-weight: 600; }
+.s-search input, .s-search select { border-color: var(--s-line); border-radius: 12px; }
+
+/* ---------- 區塊 ---------- */
+.s-section { padding: 56px 0; }
+.s-section.alt { background: #fff; }
+.s-section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.s-section-head h2 { font-size: clamp(24px, 3.4vw, 32px); margin: 0; }
+.s-section-head p { margin: 4px 0 0; color: var(--s-mute); }
+.s-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+/* 行程卡片 */
+.s-card { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--s-radius); background: #fff;
+  border: 1px solid var(--s-line); text-decoration: none; transition: transform .2s, box-shadow .2s; }
+.s-card:hover { transform: translateY(-4px); box-shadow: var(--s-shadow); }
+.s-card-media { position: relative; aspect-ratio: 5 / 3; overflow: hidden; background: #e0f2f1; }
+.s-card-media .dest-art, .s-card-media img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.s-card-media .s-tag { position: absolute; left: 12px; top: 12px; background: rgba(255, 255, 255, .92); }
+.s-card-body { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px 18px; flex: 1; }
+.s-card-body h3 { margin: 0; font-size: 19px; }
+.s-card-body p { margin: 0; color: var(--s-mute); }
+.s-card-foot { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 4px 12px; margin-top: auto; padding-top: 10px; }
+.s-card-foot > * { white-space: nowrap; }
+
+/* 縣市卡片（照片） */
+/* .site a 會讓連結繼承深色字，這裡要寫得更具體才能維持白字（見錯誤紀錄 J3-1） */
+.site a.s-city { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--s-radius);
+  text-decoration: none; color: #fff; background: linear-gradient(135deg, #0e7490, #14b8a6); }
+.s-city-text strong, .s-city-text span { text-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
+.s-city img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+.s-city:hover img { transform: scale(1.05); }
+.s-city::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(0, 0, 0, .65)); }
+.s-city-text { position: absolute; left: 16px; bottom: 14px; z-index: 1; }
+.s-city-text strong { display: block; font-size: 22px; }
+.s-city-text span { font-size: 14px; opacity: .9; }
+
+/* 特色 */
+.s-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+.s-feature { padding: 22px; border-radius: var(--s-radius); background: var(--s-bg); }
+.s-feature b { display: block; margin-bottom: 6px; font-size: 18px; color: var(--s-brand-dark); }
+.s-feature p { margin: 0; color: var(--s-mute); }
+.s-feature-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; border-radius: 12px;
+  background: #e0f2f1; color: var(--s-brand-dark); font-weight: 800; }
+
+/* ---------- 頁首橫幅（內頁） ---------- */
+.s-banner { position: relative; overflow: hidden; color: #fff; background: linear-gradient(135deg, #155e75, #0e7490); }
+.s-banner .dest-art, .s-banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.s-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 30, 45, .75), rgba(8, 30, 45, .2)); }
+.s-banner-body { position: relative; z-index: 1; padding: 56px 16px 44px; }
+.s-banner h1 { color: #fff; margin: 6px 0 8px; font-size: clamp(28px, 5vw, 44px); }
+.s-banner p { margin: 0; max-width: 620px; opacity: .95; }
+.s-crumb { font-size: 14px; opacity: .9; }
+.s-crumb a { text-decoration: none; }
+
+/* ---------- 篩選列 ---------- */
+.s-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 16px; margin: -28px 0 24px; position: relative;
+  z-index: 2; border-radius: var(--s-radius); background: #fff; box-shadow: var(--s-shadow); }
+.s-filters label { flex: 1 1 160px; font-size: 13px; color: var(--s-mute); }
+.s-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.site .s-chip { min-height: 36px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--s-line); background: #fff;
+  color: var(--s-mute); font-weight: 600; }
+.site .s-chip.on { background: var(--s-brand); border-color: var(--s-brand); color: #fff; }
+
+/* ---------- 行程詳細頁 ---------- */
+.s-detail { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; padding: 32px 16px 56px; }
+.s-box { padding: 22px; border-radius: var(--s-radius); background: #fff; border: 1px solid var(--s-line); margin-bottom: 20px; }
+.s-box h2 { font-size: 21px; margin: 0 0 14px; }
+.s-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.s-fact { padding: 12px; border-radius: 12px; background: var(--s-bg); }
+.s-fact small { display: block; color: var(--s-mute); }
+.s-fact b { font-size: 18px; }
+.s-hotels { display: grid; gap: 10px; }
+.s-hotel { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 12px;
+  border: 2px solid var(--s-line); cursor: pointer; font-weight: 400; }
+.s-hotel.on { border-color: var(--s-brand); background: #f0fdfa; }
+.site .s-hotel input { display: inline-block; vertical-align: -2px; width: auto; min-height: 0; margin: 0 10px 0 0; accent-color: var(--s-brand); }
+.s-book { position: sticky; top: 84px; }
+.s-book .s-box { box-shadow: var(--s-shadow); }
+.s-sum { display: grid; gap: 6px; margin: 14px 0; padding: 14px; border-radius: 12px; background: var(--s-bg); }
+.s-sum div { display: flex; justify-content: space-between; }
+.s-sum .total { padding-top: 8px; border-top: 1px dashed var(--s-line); font-weight: 800; font-size: 20px; color: var(--s-cta); }
+.s-success { padding: 18px; border-radius: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; }
+.s-success h3 { color: #065f46; }
+.s-error { color: #b42318; font-weight: 700; }
+.s-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.s-table th, .s-table td { padding: 8px 6px; border-bottom: 1px solid var(--s-line); text-align: left; white-space: nowrap; }
+.s-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 探索：景點、住宿 ---------- */
+.s-attr { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--s-radius); background: #fff; border: 1px solid var(--s-line); }
+.s-attr-photo { aspect-ratio: 4 / 3; background: linear-gradient(135deg, #ccfbf1, #e0f2fe); overflow: hidden; }
+.s-attr-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.s-attr-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.s-attr-body h3 { margin: 0; font-size: 17px; }
+.s-attr-body p { margin: 0; color: var(--s-mute); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.s-photo-fallback { width: 100%; height: 100%; display: grid; place-items: center; color: var(--s-brand-dark); font-weight: 700;
+  font-size: 14px; letter-spacing: .1em; opacity: .7; }
+.s-more { display: flex; justify-content: center; margin-top: 24px; }
+.s-empty { padding: 60px 16px; text-align: center; }
+.s-source { margin-top: 18px; font-size: 13px; color: var(--s-mute); }
+
+/* ---------- 旅遊須知 ---------- */
+.s-guide { padding: 32px 16px 56px; }
+
+/* ---------- 頁尾 ---------- */
+.s-footer { padding: 36px 0 90px; background: #0f2a3a; color: #cbd5e1; font-size: 14px; }
+.s-footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.s-footer p { margin: 0 0 8px; }
+.s-logo-footer { color: #fff; font-size: 18px; }
+.s-footer-title { color: #fff; font-weight: 700; }
+
+/* ---------- AI 客服聊天泡泡 ---------- */
+.site .s-chat-fab { position: fixed; right: 20px; bottom: 20px; z-index: 50; min-width: 64px; height: 64px; padding: 0 18px;
+  border-radius: 999px; background: var(--s-cta); box-shadow: 0 10px 28px rgba(234, 88, 12, .4); font-size: 17px; }
+.s-chat { position: fixed; right: 20px; bottom: 96px; z-index: 50; width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 130px);
+  overflow-y: auto; border-radius: 20px; background: #fff; box-shadow: 0 24px 60px rgba(15, 42, 58, .28);
+  opacity: 0; transform: translateY(16px) scale(.98); pointer-events: none; transition: opacity .2s, transform .2s; }
+.s-chat.open { opacity: 1; transform: none; pointer-events: auto; }
+.s-chat-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; background: linear-gradient(90deg, var(--s-brand-dark), var(--s-brand)); color: #fff; }
+.site .s-chat-head button { min-height: 32px; padding: 0 10px; background: transparent; font-size: 22px; }
+.s-chat #chat .panel { border: 0; margin: 0; padding: 14px; }
+.s-chat .chat-log { max-height: 46vh; }
+
+/* ---------- 手機 ---------- */
+@media (max-width: 860px) {
+  .s-detail { grid-template-columns: 1fr; }
+  .s-book { position: static; }
+  .s-search { grid-template-columns: 1fr 1fr; }
+  .s-search .s-btn { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .site .s-menu-btn { display: block; }
+  .s-links { display: none; position: absolute; left: 0; right: 0; top: 64px; flex-direction: column; align-items: stretch;
+    padding: 10px 16px 16px; background: #fff; border-bottom: 1px solid var(--s-line); }
+  .s-links.open { display: flex; }
+  .s-links .s-staff-link { margin-left: 0; }
+  .s-hero { min-height: 520px; }
+  .s-search { grid-template-columns: 1fr; }
+  .s-section { padding: 40px 0; }
+  .s-section-head { flex-direction: column; align-items: start; }
+  .s-chat { right: 8px; bottom: 88px; width: calc(100vw - 16px); }
+}

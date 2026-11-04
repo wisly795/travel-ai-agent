@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { api, loadSession, makeStaffApi, postJson, storeSession } from "../api.js";
 import Admin from "./Admin.jsx";
 import Dashboard from "./Dashboard.jsx";
+import DataFeeds from "./DataFeeds.jsx";
 import Erp from "./Erp.jsx";
 import Evals from "./Evals.jsx";
 import Handoffs from "./Handoffs.jsx";
@@ -20,6 +21,7 @@ const VIEWS = [
   ["view-erp", "ERP 同步"],
   ["view-procurement", "採購"],
   ["view-evals", "AI 評測"],
+  ["view-data", "資料與爬蟲"],
 ];
 
 export default function Staff({ hidden, onError }) {
@@ -116,6 +118,7 @@ function StaffHome({ session, onLogout, onExpired, onError }) {
       <Turns {...ctx} hidden={view !== "view-turns"} />
       <Handoffs {...ctx} hidden={view !== "view-handoffs"} />
       <Erp {...ctx} hidden={view !== "view-erp"} />
+      <DataFeeds {...ctx} hidden={view !== "view-data"} />
     </div>
   );
 }

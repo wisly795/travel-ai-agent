@@ -44,7 +44,7 @@ with sync_playwright() as p:
     page.wait_for_selector(".policy-hit")
     page.screenshot(path=f"{OUT}/03_RAG向量搜尋.png")
 
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#login-username", "manager")
     page.fill("#login-password", MANAGER)
     page.click("#staff-form button")

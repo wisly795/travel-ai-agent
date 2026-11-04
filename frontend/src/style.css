@@ -17,14 +17,15 @@ body {
   line-height: 1.6;
 }
 
-header {
+/* 後台版面（/admin）；前台旅遊網站的版面在 site/site.css */
+.admin-app > header {
   background: #fff;
   border-bottom: 1px solid var(--line);
-  padding: 20px 16px 0;
+  padding: 20px 16px 12px;
 }
 
-header, main { max-width: 1000px; margin: 0 auto; width: 100%; }
-main { padding: 16px; }
+.admin-app > header, .admin-app > main { max-width: 1000px; margin: 0 auto; width: 100%; }
+.admin-app > main { padding: 16px; }
 h1 { margin: 0; font-size: 26px; }
 h2 { margin: 0 0 12px; font-size: 20px; }
 h3 { margin: 0 0 6px; }

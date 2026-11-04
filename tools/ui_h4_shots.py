@@ -24,7 +24,7 @@ with sync_playwright() as p:
 
     page = browser.new_context(viewport={"width": 1280, "height": 900}).new_page()
     page.goto(APP + "/")
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#login-username", "admin")
     page.fill("#login-password", ADMIN)
     page.click("#staff-form button")

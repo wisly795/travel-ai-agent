@@ -6,7 +6,7 @@ with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get("CHROME"), args=["--no-sandbox"])
     page = browser.new_context(viewport={"width": 1280, "height": 900}).new_page()
     page.goto("http://travelquote-app-1:8000/")
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#login-username", "manager")
     page.fill("#login-password", os.environ["MANAGER_PASSWORD"])
     page.click("#staff-form button")

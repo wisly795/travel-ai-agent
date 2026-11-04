@@ -631,5 +631,12 @@ app.mount("/static", StaticFiles(directory=FRONTEND), name="static")
 
 
 @app.get("/")
-def index():
+@app.get("/tours")
+@app.get("/tours/{rest:path}")
+@app.get("/explore")
+@app.get("/explore/{rest:path}")
+@app.get("/guide")
+@app.get("/admin")
+def index(rest: str = ""):
+    """前端是單頁應用（React Router）：這些網址都回同一個頁面，由前端決定顯示哪一頁，重新整理也不會 404。"""
     return FileResponse(FRONTEND / "index.html")

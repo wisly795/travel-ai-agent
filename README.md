@@ -26,6 +26,9 @@
 | 監控與告警 | /metrics（權杖保護）、Prometheus 7 條告警（含 AI 花費、評測分數）、Alertmanager 寄信、Grafana 儀表板 |
 | React 前端 | React 18＋Vite，元件測試（Vitest），在 Docker 多階段建置 |
 | CI | GitHub Actions：每次上傳建置全部容器、跑全部測試（假 AI，不花額度） |
+| 旅遊網站前台 | 「晴空旅遊」：大圖首頁與搜尋、行程列表（條件在網址）、詳細頁即時試算與建立報價、探索台灣 22 縣市、旅遊須知、每頁右下角 AI 聊天泡泡；後台在 `/admin` |
+| 政府開放資料 | 交通部觀光署景點 6,044、旅宿 15,652 筆，每天自動更新（比對新增／更新／不變／下架）；網站與 AI 客服都能查，註明來源 |
+| 爬蟲 | 爬自建的模擬供應商網站（真實訂房網站禁止爬取）：遵守 robots.txt 與 Crawl-delay、429 重試、翻頁、價格歷史、漲跌 15% 通知 |
 
 ## 架構
 ```text
@@ -55,6 +58,8 @@
 | 模擬信箱 Mailpit | http://localhost:8025（只開在本機） |
 | MCP | http://localhost:8102/mcp（只開在本機） |
 | n8n 編輯畫面 | http://localhost:5678（只開在本機，第一次需建立本機帳號） |
+| 業務後台 | http://localhost:8100/admin |
+| 模擬供應商網站（爬蟲對象） | http://localhost:8104（只開在本機） |
 | Grafana 監控儀表板 | http://localhost:3000（只開在本機，帳號 admin，密碼在 `登入資訊.txt`） |
 | Prometheus | http://localhost:9090（只開在本機） |
 
@@ -80,9 +85,11 @@
 | RAG 模型比較 | `python rag_compare.py` | 測試題前 3 名 23→25 |
 | 監控 | `python monitor_test.py` | 21/21 |
 | MCP（mcp 容器） | `python mcp_test.py` | 15/15 |
-| 前端元件（Vitest，建置時執行） | `npm test` | 7/7 |
+| 開放資料匯入 | `python opendata_test.py` | 23/23 |
+| 爬蟲（和網站真實價格逐筆核對） | `python crawler_test.py` | 19/19 |
+| 前端元件（Vitest，建置時執行） | `npm test` | 8/8 |
+| 前台畫面（瀏覽器） | `tools/ui_site_test.py` | 通過 |
 | 真實 AI 評測 | `python ai_eval.py [說明] [single|multi]` | 單一 20/20、多 Agent 20/20 |
-| 畫面（瀏覽器） | `tools/ui_test.py` | 通過 |
 | 全部一次跑（同 CI） | `bash tools/ci_run.sh` | GitHub Actions |
 
 各階段的真實 Claude 測試與瀏覽器截圖見 `docs/*_測試報告.md`，截圖在 `docs/過程截圖/`。
@@ -94,4 +101,4 @@
 - `docs/評測/`：AI 評測報告（含單一與多 Agent 對照）
 
 ## 技術
-Python 3.11、FastAPI、psycopg 3、PostgreSQL 15＋pgvector、fastembed、sentence-transformers（微調）、ONNX、Anthropic Claude API、LangGraph、React 18、Vite、Vitest、n8n 2.45、Mailpit、MCP Python SDK、Prometheus、Alertmanager、Grafana、Docker Compose、GitHub Actions、Playwright。
+Python 3.11、FastAPI、psycopg 3、PostgreSQL 15＋pgvector、fastembed、sentence-transformers（微調）、ONNX、Anthropic Claude API、LangGraph、BeautifulSoup（爬蟲）、政府開放資料、React 18、React Router、Vite、Vitest、n8n 2.45、Mailpit、MCP Python SDK、Prometheus、Alertmanager、Grafana、Docker Compose、GitHub Actions、Playwright。

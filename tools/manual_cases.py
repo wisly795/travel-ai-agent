@@ -79,7 +79,7 @@ with sync_playwright() as p:
     log.append({"case": 18, "name": "手機版", "passed": no_scroll})
 
     # 後台確認第 3 題建立的報價
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#staff-token", TOKEN)
     page.click("#staff-form button")
     page.wait_for_selector("#staff-result:not([hidden])")

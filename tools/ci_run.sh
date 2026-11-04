@@ -89,13 +89,15 @@ echo "::endgroup::"
 echo "::group::ui_test"
 docker build -q -t travelquote-uitest tools/uitest >/dev/null
 mkdir -p ci-shots
-SALES_PASSWORD=$(grep '^SALES_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)
+# 密碼用環境變數傳（-e 只寫名稱），不放在命令列上
+export ADMIN_PASSWORD=$(grep '^ADMIN_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)
 if MSYS_NO_PATHCONV=1 docker run --rm --network "${P}_default" \
-    -e APP_URL="http://$P-app-1:8000/" -e SALES_PASSWORD="$SALES_PASSWORD" \
-    -v "$PWD/tools:/t" -v "$PWD/ci-shots:/shots" travelquote-uitest python /t/ui_test.py > /tmp/ci_ui_test.log 2>&1; then
-  echo "✔ ui_test"; echo "- ✔ ui_test（瀏覽器畫面測試）" >> "$SUMMARY"
+    -e APP_URL="http://$P-app-1:8000/" -e ADMIN_PASSWORD \
+    -v "$PWD/tools:/t" -v "$PWD/ci-shots:/shots" travelquote-uitest python /t/ui_site_test.py > /tmp/ci_ui_test.log 2>&1; then
+  echo "✔ ui_site_test"; echo "- ✔ ui_site_test（前台與後台瀏覽器畫面測試）" >> "$SUMMARY"
 else
-  FAILED+=("ui_test"); { echo "- ✘ ui_test"; echo '```'; tail -n 15 /tmp/ci_ui_test.log; echo '```'; } >> "$SUMMARY"
+  FAILED+=("ui_site_test"); { echo "- ✘ ui_site_test"; echo '```'; tail -n 15 /tmp/ci_ui_test.log; echo '```'; } >> "$SUMMARY"
+  echo "::error title=ui_site_test 失敗::$(tail -n 6 /tmp/ci_ui_test.log | sed ':a;N;$!ba;s/\n/%0A/g')"
 fi
 cat /tmp/ci_ui_test.log
 echo "::endgroup::"

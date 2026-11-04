@@ -29,7 +29,7 @@ with sync_playwright() as p:
     ask(page, "選最便宜的組合，我叫測試小華，請建立報價單")
     page.screenshot(path=f"{OUT}/08_真實AI建立報價.png", full_page=True)
 
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#staff-token", TOKEN)
     page.click("#staff-form button")
     page.wait_for_selector("#staff-result:not([hidden])")

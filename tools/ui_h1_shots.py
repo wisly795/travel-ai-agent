@@ -66,7 +66,7 @@ with sync_playwright() as p:
     pr = call("PATCH", f"/api/quotes/{quote['id']}/status", {"status": "成交"})["purchase_request"]
     result = call("POST", f"/api/procurement/{pr['id']}/analyze")
     print("採購 AI：", result["analysis"])
-    page.click("#tab-staff")
+    page.goto(URL + "admin")
     page.fill("#staff-token", STAFF)
     page.click("#staff-form button")
     page.wait_for_selector("#staff-result:not([hidden])")
