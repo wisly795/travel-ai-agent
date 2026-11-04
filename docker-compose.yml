@@ -133,6 +133,7 @@ services:
     image: prom/alertmanager:v0.27.0
     volumes:
       - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertdata:/alertmanager   # 不寫的話 Docker 會建一個名稱是亂碼的資料區
     depends_on: [mailpit]
     ports: ["127.0.0.1:${ALERTMANAGER_PORT:-9093}:9093"]
     restart: unless-stopped
@@ -158,3 +159,4 @@ volumes:
   n8ndata:
   promdata:
   grafanadata:
+  alertdata:

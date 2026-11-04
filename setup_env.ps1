@@ -24,7 +24,8 @@ $text = $text -replace '(?m)^GRAFANA_PASSWORD=.*$', ('GRAFANA_PASSWORD=' + $graf
 $info = @"
 旅遊 AI 客服與報價系統：登入資訊（只存在這台電腦，請勿外流）
 
-網站：http://localhost:8100 → 業務後台
+旅遊網站：http://localhost:8100
+業務後台：http://localhost:8100/admin
   業務帳號：sales      密碼：$sales
   主管帳號：manager    密碼：$managerPw（可核准大額採購單）
   管理員帳號：admin    密碼：$admin（可管理帳號與合作夥伴）

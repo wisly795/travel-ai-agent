@@ -25,8 +25,8 @@ def call(method, path, body=None, token=STAFF):
         return json.loads(response.read())
 
 
-def chat(conversation_id, message):
-    data = call("POST", "/api/chat", {"conversation_id": conversation_id, "message": message})
+def chat(conversation_id, message, mode="single"):
+    data = call("POST", "/api/chat", {"conversation_id": conversation_id, "message": message, "mode": mode})
     print(f"客人：{message}\nAI：{data['reply'][:80]}…  工具：{data['tools_used']}\n")
     return data
 
@@ -112,6 +112,10 @@ if not c["quote"]:
 # 5. 規定問答與轉專人
 chat(None, f"我的團費 107,200 元，{in_days(7)} 出發，現在取消可以退多少？")
 chat(None, "我想把行程改到下個月，可以嗎？")
+
+# 5b. 第三、四期：多 Agent 協作（同時問報價與規定）、查台灣景點（政府開放資料工具）
+chat(None, "4 個人去沖繩住海風飯店，海島放鬆 4 日多少錢？另外出發前一週取消會扣多少？", mode="multi")
+chat(None, "花蓮有什麼適合看海的景點？推薦兩個")
 
 # 6. 大額報價：陳大文，成交 → AI 比價 → 等主管核准（留在待核准，展示主管流程）
 q3 = web_quote("陳大文", "賞楓慢旅 6 日", "庭園溫泉館", 8, 60)

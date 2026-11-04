@@ -1,0 +1,87 @@
+ Image travelai-erp Building 
+ Image travelai-website Building 
+ Image travelai-app Building 
+ Image travelai-supplier Building 
+ Image travelai-mcp Building 
+failed to dial gRPC: rpc error: code = Internal desc = rpc error: code = Internal desc = header key "x-docker-expose-session-sharedkey" contains value with non-printable ASCII characters
+
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+ Network travelai_default Creating 
+ Network travelai_default Created 
+ Volume travelai_erpdata Creating 
+ Volume travelai_erpdata Created 
+ Volume travelai_n8ndata Creating 
+ Volume travelai_n8ndata Created 
+ Volume travelai_alertdata Creating 
+ Volume travelai_alertdata Created 
+ Volume travelai_grafanadata Creating 
+ Volume travelai_grafanadata Created 
+ Volume travelai_dbdata Creating 
+ Volume travelai_dbdata Created 
+ Volume travelai_promdata Creating 
+ Volume travelai_promdata Created 
+ Container travelai-mailpit-1 Creating 
+ Container travelai-supplier-1 Creating 
+ Container travelai-n8n-1 Creating 
+ Container travelai-erp-1 Creating 
+ Container travelai-db-1 Creating 
+ Container travelai-supplier-1 Created 
+ Container travelai-erp-1 Created 
+ Container travelai-mailpit-1 Created 
+ Container travelai-alertmanager-1 Creating 
+ Container travelai-n8n-1 Created 
+ Container travelai-db-1 Created 
+ Container travelai-app-1 Creating 
+ Container travelai-alertmanager-1 Created 
+ Container travelai-app-1 Created 
+ Container travelai-mcp-1 Creating 
+ Container travelai-prometheus-1 Creating 
+ Container travelai-website-1 Creating 
+ Container travelai-mcp-1 Created 
+ Container travelai-website-1 Created 
+ Container travelai-prometheus-1 Created 
+ Container travelai-grafana-1 Creating 
+ Container travelai-grafana-1 Created 
+ Container travelai-n8n-1 Starting 
+ Container travelai-mailpit-1 Starting 
+ Container travelai-erp-1 Starting 
+ Container travelai-db-1 Starting 
+ Container travelai-supplier-1 Starting 
+ Container travelai-mailpit-1 Started 
+ Container travelai-alertmanager-1 Starting 
+ Container travelai-erp-1 Started 
+ Container travelai-n8n-1 Started 
+ Container travelai-supplier-1 Started 
+ Container travelai-db-1 Started 
+ Container travelai-db-1 Waiting 
+ Container travelai-alertmanager-1 Started 
+ Container travelai-db-1 Healthy 
+ Container travelai-app-1 Starting 
+ Container travelai-app-1 Started 
+ Container travelai-website-1 Starting 
+ Container travelai-mcp-1 Starting 
+ Container travelai-prometheus-1 Starting 
+ Container travelai-website-1 Started 
+ Container travelai-mcp-1 Started 
+ Container travelai-prometheus-1 Started 
+ Container travelai-grafana-1 Starting 
+ Container travelai-grafana-1 Started 

@@ -28,6 +28,8 @@ docker build -t travelai-mcp -f mcp/Dockerfile .
 if errorlevel 1 goto buildfail
 docker build -t travelai-website -f website/Dockerfile .
 if errorlevel 1 goto buildfail
+docker build -t travelai-supplier -f supplier/Dockerfile .
+if errorlevel 1 goto buildfail
 set DOCKER_BUILDKIT=
 :run
 echo 啟動中……

@@ -1,0 +1,21 @@
+等開放資料匯入完成……
+  hotels 完成 15652
+  attractions 完成 6044
+== api_test：68/68 通過
+== auth_test：27/27 通過
+== partner_test：21/21 通過
+== agent_test：29/29 通過
+== multi_agent_test：24/24 通過
+== procurement_test：32/32 通過
+== automation_test：11/11 通過
+== eval_test：15/15 通過
+== rag_eval：第 1 名命中：14/16　前 3 名命中：16/16（其中已知弱點未命中 0 題）　無關問題回空：2/2
+== monitor_test：21/21 通過
+== opendata_test：23/23 通過
+== crawler_test：19/19 通過
+== mcp_test：15/15 通過
+== ui_site_test：開放資料： 有 前台畫面測試全部通過 
+旅遊網站：http://localhost:8100
+業務後台：http://localhost:8100/admin
+監控儀表板：http://localhost:3000（Grafana）
+第一次登入後，建議由管理員在後台「系統管理」修改密碼。
