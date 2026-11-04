@@ -8,18 +8,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "dist" / f"旅遊AI客服系統_安裝包_{date.today():%Y%m%d}.zip"
-INCLUDE = ["backend", "frontend", "db", "data", "erp", "mcp", "website", "automation", "tools",
+# 微調模型（models/finetuned，約 113 MB）一起放進去，安裝後不用重新訓練；個人求職資料（成品規劃等）不放
+INCLUDE = ["backend", "frontend", "db", "data", "erp", "mcp", "website", "automation", "monitoring", "models", "tools",
            "docker-compose.yml", ".env.example", "Start.bat", "Stop.bat", "setup_env.ps1",
            "README.md", ".gitignore", ".gitattributes",
-           "docs/交接文件.md", "docs/MCP接入說明.md", "docs/系統規格.md", "docs/成品規劃.md"]
-NEVER = {".env", "登入資訊.txt"}
+           "docs/交接文件.md", "docs/MCP接入說明.md", "docs/系統規格.md"]
+NEVER = {".env", "登入資訊.txt", "ci.env"}
+SKIP_DIRS = {"__pycache__", "node_modules", "dist"}
 
 OUT.parent.mkdir(exist_ok=True)
 files = []
 for item in INCLUDE:
     path = ROOT / item
     files += [p for p in path.rglob("*") if p.is_file()] if path.is_dir() else [path]
-files = [p for p in files if p.name not in NEVER and "__pycache__" not in p.parts and p.suffix != ".pyc"]
+files = [p for p in files if p.name not in NEVER and not SKIP_DIRS & set(p.parts) and p.suffix != ".pyc"]
 
 with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(files):

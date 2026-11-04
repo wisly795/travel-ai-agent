@@ -24,10 +24,10 @@ def login(browser, viewport):
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get("CHROME"), args=["--no-sandbox"])
     page, errors = login(browser, {"width": 1280, "height": 900})
-    assert page.locator("#kpis .stat").count() == 5
+    assert page.locator("#kpis .stat").count() == 6  # H6 加了「AI 評測」卡片
     assert page.locator("#chart-quotes .hit").count() == 14, "每日報價應該有 14 天"
     assert page.locator("#chart-packages .hbar-row").count() >= 3
-    assert page.locator("#chart-sources .legend-item").count() == 2
+    assert page.locator("#chart-sources .legend-item").count() == 3  # H4 加了「官網串接」來源
     page.screenshot(path=f"{OUT}/01_儀表板.png", full_page=True)
 
     hit = page.locator("#chart-deals .hit").nth(13)
