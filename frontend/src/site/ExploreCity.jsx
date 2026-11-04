@@ -16,6 +16,7 @@ export default function ExploreCity() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(null);  // 點開的卡片（I6 驗收問題 8：卡片原本點不進去）
 
   function load(offset) {
     const query = new URLSearchParams({ city, limit: PAGE, offset });
@@ -65,8 +66,14 @@ export default function ExploreCity() {
         {total !== null && <p className="s-muted" id="explore-count">共 {total.toLocaleString()} 筆</p>}
         {total === 0 && <div className="s-empty"><h2>找不到符合的資料</h2><p className="s-muted">換個關鍵字試試看。</p></div>}
         <div className="s-grid" id="explore-list">
-          {items.map((item) => (kind === "attractions" ? <AttractionCard key={item.id} item={item} /> : <HotelCard key={item.id} item={item} />))}
+          {items.map((item) => (
+            <button key={item.id} type="button" className="s-attr-btn" aria-label={`看 ${item.name} 的詳細介紹`}
+                    onClick={() => setOpen({ kind, item })}>
+              {kind === "attractions" ? <AttractionCard item={item} /> : <HotelCard item={item} />}
+            </button>
+          ))}
         </div>
+        {open && <Detail kind={open.kind} item={open.item} onClose={() => setOpen(null)} />}
         {items.length < (total || 0) && (
           <div className="s-more">
             <button type="button" className="s-btn s-btn-ghost" disabled={loading} onClick={() => load(items.length)}>
@@ -77,6 +84,48 @@ export default function ExploreCity() {
         <p className="s-source">{SOURCE_NOTE}。內容以官方公告為準。</p>
       </div>
     </>
+  );
+}
+
+// 詳細內容：先用列表已有的資料顯示，再向後端拿完整資料（照片、網站等）
+function Detail({ kind, item, onClose }) {
+  const [full, setFull] = useState(item);
+  useEffect(() => {
+    api(`/api/explore/${kind}/${encodeURIComponent(item.id)}`).then(setFull).catch(() => {});
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [kind, item.id]);
+  const map = full.lat && full.lon
+    ? `https://www.google.com/maps/search/?api=1&query=${full.lat},${full.lon}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full.address || full.name)}`;
+  const services = (full.services || "").split(",").filter(Boolean);
+  return (
+    <div className="s-modal-bg" onClick={onClose}>
+      <div className="s-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="s-modal-close" aria-label="關閉" onClick={onClose}>×</button>
+        <div className="s-modal-photos">
+          {(full.images || []).slice(0, 3).map((img) => <Photo key={img.url} src={img.url} alt={img.name || full.name} fallback={<span />} />)}
+        </div>
+        <div className="s-modal-body">
+          <h2 id="detail-title">{full.name}</h2>
+          <div>{(full.class_names || []).map((c) => <span key={c} className="s-tag" style={{ marginRight: 6 }}>{c}</span>)}
+            {full.free && <span className="s-tag warm">免費</span>}</div>
+          <dl className="s-modal-info">
+            <dt>地址</dt><dd>{full.address || "—"}</dd>
+            {kind === "hotels" && <><dt>房間</dt><dd>{full.total_rooms} 間</dd></>}
+            {kind === "hotels" && full.lowest_price && <><dt>登記房價</dt><dd>{money(full.lowest_price)} ～ {money(full.ceiling_price)}／晚（業者向官方登記的參考價，不是本站報價）</dd></>}
+            {services.length > 0 && <><dt>服務</dt><dd>{services.join("・")}</dd></>}
+          </dl>
+          {full.description && <p className="s-modal-desc">{full.description}</p>}
+          <div className="s-modal-actions">
+            <a className="s-btn" href={map} target="_blank" rel="noreferrer">在 Google 地圖查看</a>
+            {full.website && <a className="s-btn s-btn-ghost" href={full.website} target="_blank" rel="noreferrer">官方網站</a>}
+          </div>
+          <p className="s-source">資料來源：{full.source || "交通部觀光署"}（{full.license || "政府資料開放授權條款"}）。內容以官方公告為準，出發前請再確認。</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
