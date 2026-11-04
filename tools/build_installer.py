@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "dist" / f"旅遊AI客服系統_安裝包_{date.today():%Y%m%d}.zip"
 # 微調模型（models/finetuned，約 113 MB）一起放進去，安裝後不用重新訓練；個人求職資料（成品規劃等）不放
 INCLUDE = ["backend", "frontend", "db", "data", "erp", "mcp", "website", "supplier", "automation", "monitoring", "models", "tools",
-           "docker-compose.yml", ".env.example", "Start.bat", "Stop.bat", "setup_env.ps1",
+           "docker-compose.yml", "docker-compose.prod.yml", ".env.example", "Start.bat", "Stop.bat", "setup_env.ps1",
            "README.md", ".gitignore", ".gitattributes",
            "docs/交接文件.md", "docs/MCP接入說明.md", "docs/系統規格.md", "docs/從零重建指南.md"]
 NEVER = {".env", "登入資訊.txt", "ci.env"}
