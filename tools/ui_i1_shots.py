@@ -1,4 +1,4 @@
-﻿"""I1 截圖：GitHub 倉庫首頁與 CI 執行結果（公開頁面，不需登入）。"""
+"""I1 截圖：GitHub 倉庫首頁與 CI 執行結果（公開頁面，不需登入）。"""
 import os
 import sys
 

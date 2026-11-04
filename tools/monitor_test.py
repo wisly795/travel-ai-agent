@@ -6,6 +6,7 @@
 import base64
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.request
@@ -40,10 +41,11 @@ get("http://localhost:8000/api/quotes/999999/events")
 get("http://localhost:8000/no-such-page-12345")
 status, body = get("http://localhost:8000/metrics", {"Authorization": f"Bearer {TOKEN}"})
 check("帶權杖可以看到指標", status == 200)
+# 只看 route 標籤（數值裡可能剛好有 0.0999999 這種數字，不能整份搜尋，見錯誤紀錄 I4-5）
+routes = set(re.findall(r'route="([^"]*)"', body))
 check("請求數依路由樣板記錄（不是實際網址）",
-      'route="/api/quotes/{quote_id}/events"' in body and "999999" not in body,
-      [line for line in body.splitlines() if "quotes" in line or "999999" in line][:6])
-check("不存在的網址歸到「其他」，不會讓指標無限增加", 'route="其他"' in body and "no-such-page" not in body)
+      "/api/quotes/{quote_id}/events" in routes and not any("999999" in r for r in routes), sorted(routes)[:8])
+check("不存在的網址歸到「其他」，不會讓指標無限增加", "其他" in routes and not any("no-such-page" in r for r in routes))
 for name in ("travel_http_request_seconds_bucket", "travel_ai_cost_today_usd", "travel_ai_cost_limit_usd",
              "travel_erp_sync_failed", "travel_purchase_orders_pending", "travel_db_up 1.0"):
     check(f"指標 {name.split()[0]}", name in body)
