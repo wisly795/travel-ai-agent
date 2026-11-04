@@ -66,8 +66,9 @@ for t in api_test auth_test partner_test agent_test multi_agent_test procurement
     echo "✔ $t"; echo "- ✔ $t：$(tail -n 1 /tmp/ci_$t.log)" >> "$SUMMARY"
   else
     echo "✘ $t"; FAILED+=("$t")
-    # 失敗的項目寫進 GitHub 的執行摘要，不用登入下載紀錄也看得到原因
+    # 失敗原因寫進 GitHub 的執行摘要和標註（標註不用登入就看得到）
     { echo "- ✘ $t"; echo '```'; grep -E "^FAIL|Error|Traceback" "/tmp/ci_$t.log" | head -20; tail -n 3 "/tmp/ci_$t.log"; echo '```'; } >> "$SUMMARY"
+    echo "::error title=$t 失敗::$( { grep -E "^FAIL|Error" "/tmp/ci_$t.log" | head -8; tail -n 1 "/tmp/ci_$t.log"; } | sed ':a;N;$!ba;s/\n/%0A/g')"
   fi
   cat "/tmp/ci_$t.log"
   echo "::endgroup::"
