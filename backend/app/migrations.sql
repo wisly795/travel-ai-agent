@@ -288,3 +288,34 @@ CREATE TABLE IF NOT EXISTS od_imports (
     started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     finished_at TIMESTAMPTZ
 );
+
+-- 爬蟲：模擬供應商網站的住宿、價格歷史（只有變動才寫一筆）、每次爬取紀錄
+CREATE TABLE IF NOT EXISTS crawled_hotels (
+    supplier_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL,
+    stars INTEGER NOT NULL DEFAULT 0,
+    url TEXT NOT NULL,
+    first_seen TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_seen TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS crawled_prices (
+    id SERIAL PRIMARY KEY,
+    supplier_id TEXT NOT NULL REFERENCES crawled_hotels(supplier_id),
+    room TEXT NOT NULL,
+    price INTEGER,
+    promo BOOLEAN NOT NULL DEFAULT false,
+    price_date TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_crawled_prices_hotel ON crawled_prices(supplier_id, room, id DESC);
+CREATE TABLE IF NOT EXISTS crawl_runs (
+    id SERIAL PRIMARY KEY,
+    trigger TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT '執行中',
+    pages INTEGER, hotels INTEGER, changes INTEGER, alerts INTEGER, requests INTEGER, retries INTEGER,
+    errors JSONB NOT NULL DEFAULT '[]',
+    seconds NUMERIC(8, 1),
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    finished_at TIMESTAMPTZ
+);

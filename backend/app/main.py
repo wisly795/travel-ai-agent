@@ -15,8 +15,8 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
-from . import (agent, auth, automation, dashboard, erp, evals, metrics, multi_agent, opendata, partner, procurement,
-               quotes, rag)
+from . import (agent, auth, automation, crawler, dashboard, erp, evals, metrics, multi_agent, opendata, partner,
+               procurement, quotes, rag)
 from .db import migrate, query
 
 STAFF_TOKEN = os.environ["STAFF_TOKEN"]
@@ -308,6 +308,31 @@ def opendata_import(who: dict = Depends(require_automation)):
 @app.get("/api/admin/opendata/imports", dependencies=[Depends(require_staff)])
 def opendata_imports():
     return opendata.imports()
+
+
+@app.post("/api/admin/crawler/run", status_code=202)
+def crawler_run(who: dict = Depends(require_automation)):
+    """爬一次模擬供應商網站（管理員或 n8n 每日排程）。遵守 robots.txt 每秒 1 次，約 1 分鐘。"""
+    if who["role"] not in ("管理員", "自動化"):
+        raise HTTPException(403, "只有管理員或自動化流程可以執行爬蟲")
+    crawler.run_background(who["name"])
+    return {"started": True}
+
+
+@app.get("/api/admin/crawler/runs", dependencies=[Depends(require_staff)])
+def crawler_runs():
+    return crawler.runs()
+
+
+@app.get("/api/admin/crawler/changes", dependencies=[Depends(require_staff)])
+def crawler_changes():
+    return crawler.recent_changes()
+
+
+@app.get("/api/supplier-prices")
+def supplier_prices(city: str | None = Query(default=None, max_length=10)):
+    """爬蟲抓到的供應商最新價格（模擬網站資料，比價參考用）。"""
+    return {"hotels": crawler.latest_prices(city), "source": "雲遊旅宿比價網（模擬網站，資料皆為虛構）"}
 
 
 @app.get("/api/policies/model")

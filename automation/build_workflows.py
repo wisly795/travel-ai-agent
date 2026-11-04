@@ -135,6 +135,12 @@ return detail.filter(d => d.attempts >= 3).map(d => ({ json: d }));""", [480, 0]
         schedule("每天 04:30", "30 4 * * *", [0, 0]),
         http("匯入景點與旅宿", "POST", "/api/admin/opendata/import", [240, 0]),
     ], [("每天 04:30", "匯入景點與旅宿")]),
+
+    # 每天爬一次模擬供應商網站；價格漲跌超過 15% 由主系統寫通知，這裡把新的通知寄給採購（業務信箱）
+    workflow("tqCrawler0000001", "6 供應商價格爬蟲", [
+        schedule("每天 05:00", "0 5 * * *", [0, 0]),
+        http("執行爬蟲", "POST", "/api/admin/crawler/run", [240, 0]),
+    ], [("每天 05:00", "執行爬蟲")]),
 ]
 
 for flow in flows:

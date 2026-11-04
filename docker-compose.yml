@@ -40,6 +40,7 @@ services:
       METRICS_TOKEN: ${METRICS_TOKEN:-}
       RAG_MODEL: ${RAG_MODEL:-finetuned}
       OPENDATA_AUTO_IMPORT: ${OPENDATA_AUTO_IMPORT:-1}
+      SUPPLIER_URL: http://supplier:8000
     depends_on:
       db:
         condition: service_healthy
@@ -68,6 +69,13 @@ services:
       PARTNER_KEY: ${PARTNER_DEMO_KEY:-}
     depends_on: [app]
     ports: ["${WEBSITE_PORT:-8103}:8000"]
+    restart: unless-stopped
+  # 模擬供應商網站：給爬蟲抓的對象（分頁、robots.txt、限流、每天變價），只開在本機
+  supplier:
+    build:
+      context: .
+      dockerfile: supplier/Dockerfile
+    ports: ["127.0.0.1:${SUPPLIER_PORT:-8104}:8000"]
     restart: unless-stopped
   # MCP 伺服器：讓 Claude Desktop／Claude Code 直接操作本系統，只開在本機
   mcp:
