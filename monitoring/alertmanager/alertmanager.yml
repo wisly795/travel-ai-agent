@@ -1,0 +1,20 @@
+# Alertmanager：把 Prometheus 的告警寄到模擬信箱（Mailpit），不會真的寄出去
+global:
+  smtp_smarthost: mailpit:1025
+  smtp_from: monitor@travel.example
+  smtp_require_tls: false
+
+route:
+  receiver: it-mail
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: it-mail
+    email_configs:
+      - to: it@travel.example
+        send_resolved: true
+        headers:
+          Subject: '【系統告警】{{ .CommonLabels.alertname }}（{{ .Status }}）'

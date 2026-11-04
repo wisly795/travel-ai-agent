@@ -6,6 +6,7 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from datetime import date
+from typing import Literal
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
@@ -13,7 +14,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
-from . import agent, auth, automation, dashboard, erp, evals, partner, procurement, quotes, rag
+from . import agent, auth, automation, dashboard, erp, evals, metrics, multi_agent, partner, procurement, quotes, rag
 from .db import migrate, query
 
 STAFF_TOKEN = os.environ["STAFF_TOKEN"]
@@ -32,6 +33,16 @@ async def lifespan(app):
 
 
 app = FastAPI(title="旅遊行程報價系統", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+app.middleware("http")(metrics.middleware)
+
+
+@app.get("/metrics", include_in_schema=False)
+def prometheus_metrics(authorization: str = Header(default="")):
+    """給 Prometheus 抓監控指標。要帶 METRICS_TOKEN；沒設定就不開放。"""
+    if not metrics.METRICS_TOKEN or not hmac.compare_digest(authorization, f"Bearer {metrics.METRICS_TOKEN}"):
+        raise HTTPException(404, "Not Found")
+    body, content_type = metrics.render()
+    return Response(body, media_type=content_type)
 
 
 class QuoteRequest(BaseModel):
@@ -53,6 +64,7 @@ class QuoteRequest(BaseModel):
 class ChatRequest(BaseModel):
     conversation_id: UUID | None = None
     message: str = Field(min_length=1, max_length=500)
+    mode: Literal["single", "multi"] = "single"
 
     @field_validator("message")
     @classmethod
@@ -259,6 +271,12 @@ def policies():
     return rag.list_policies()
 
 
+@app.get("/api/policies/model")
+def policy_model():
+    """目前 RAG 用哪個向量模型、門檻多少。"""
+    return rag.info()
+
+
 @app.get("/api/policies/search")
 def search_policies(q: str = Query(min_length=1, max_length=300)):
     """直接看 RAG 找到哪些條文與相似度，方便檢查與教學。"""
@@ -273,6 +291,8 @@ def chat_status():
 @app.post("/api/chat")
 def chat(request: ChatRequest):
     try:
+        if request.mode == "multi":
+            return multi_agent.chat(request.conversation_id, request.message)
         return agent.chat(request.conversation_id, request.message)
     except agent.ChatError as error:
         raise HTTPException(error.status, error.message)
@@ -453,9 +473,9 @@ def ai_turns(limit: int = Query(default=30, ge=1, le=200)):
     return query(
         """
         SELECT t.id, t.conversation_id, t.user_message, t.reply, t.model,
-               t.input_tokens, t.output_tokens, t.cost_usd, t.created_at,
+               t.input_tokens, t.output_tokens, t.cost_usd, t.created_at, t.agent_path,
                coalesce(json_agg(json_build_object('tool', c.tool, 'input', c.input,
-                        'output', c.output, 'is_error', c.is_error) ORDER BY c.id)
+                        'output', c.output, 'is_error', c.is_error, 'agent', c.agent) ORDER BY c.id)
                         FILTER (WHERE c.id IS NOT NULL), '[]') AS tools
         FROM ai_turns t LEFT JOIN ai_tool_calls c ON c.turn_id = t.id
         GROUP BY t.id ORDER BY t.id DESC LIMIT %s
@@ -475,15 +495,21 @@ def eval_overview():
     return {"running": evals.is_running(), "latest": evals.latest(), "history": evals.history()}
 
 
+class EvalRunRequest(BaseModel):
+    mode: Literal["single", "multi"] = "single"
+
+
 @app.post("/api/admin/evals/run", status_code=202)
-def eval_run(who: dict = Depends(require_admin)):
+def eval_run(request: EvalRunRequest | None = None, who: dict = Depends(require_admin)):
     """管理員觸發 AI 評測（20 題，約 1–2 分鐘，會花少量 API 額度），在背景執行。"""
+    mode = request.mode if request else "single"
     try:
         agent.check_limits(None)
         agent.get_client()
     except agent.ChatError as error:
         raise HTTPException(error.status, error.message)
-    if not evals.start_background(f"由 {who['name']} 執行"):
+    label = f"由 {who['name']} 執行" + ("（多 Agent）" if mode == "multi" else "")
+    if not evals.start_background(label, mode):
         raise HTTPException(409, "評測正在執行中")
     return {"started": True}
 

@@ -8,5 +8,7 @@ RUN python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-tran
 COPY backend/app /code/app
 COPY frontend /code/frontend
 COPY data/policies /code/data/policies
+# 微調過的向量模型（沒有的話只有 README，系統自動改用原始模型）
+COPY models /code/models
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -17,6 +17,9 @@ $text = $text -replace '(?m)^MANAGER_TOKEN=.*$', ('MANAGER_TOKEN=' + (New-Secret
 $text = $text -replace '(?m)^ERP_API_KEY=.*$', ('ERP_API_KEY=' + (New-Secret 32))
 $text = $text -replace '(?m)^AUTOMATION_TOKEN=.*$', ('AUTOMATION_TOKEN=' + (New-Secret 32))
 $text = $text -replace '(?m)^PARTNER_DEMO_KEY=.*$', ('PARTNER_DEMO_KEY=pk_' + (New-Secret 32))
+$text = $text -replace '(?m)^METRICS_TOKEN=.*$', ('METRICS_TOKEN=' + (New-Secret 32))
+$grafana = New-Password
+$text = $text -replace '(?m)^GRAFANA_PASSWORD=.*$', ('GRAFANA_PASSWORD=' + $grafana)
 [IO.File]::WriteAllText((Join-Path (Get-Location) '.env'), $text, (New-Object Text.UTF8Encoding $false))
 $info = @"
 旅遊 AI 客服與報價系統：登入資訊（只存在這台電腦，請勿外流）
@@ -24,7 +27,10 @@ $info = @"
 網站：http://localhost:8100 → 業務後台
   業務帳號：sales      密碼：$sales
   主管帳號：manager    密碼：$managerPw（可核准大額採購單）
-  管理員帳號：admin    密碼：$admin（帳號管理）
+  管理員帳號：admin    密碼：$admin（可管理帳號與合作夥伴）
+
+監控儀表板：http://localhost:3000（Grafana）
+  帳號：admin    密碼：$grafana
 
 第一次登入後，建議由管理員在後台「系統管理」修改密碼。
 

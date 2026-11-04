@@ -22,6 +22,8 @@ MANAGER_TOKEN=$(rand)
 ERP_API_KEY=$(rand)
 AUTOMATION_TOKEN=$(rand)
 PARTNER_DEMO_KEY=pk_$(rand)
+METRICS_TOKEN=$(rand)
+GRAFANA_PASSWORD=$(rand)
 ANTHROPIC_API_KEY=
 APP_PORT=${APP_PORT}
 ERP_PORT=$((APP_PORT + 1))
@@ -29,6 +31,9 @@ MCP_PORT=$((APP_PORT + 2))
 WEBSITE_PORT=$((APP_PORT + 3))
 N8N_PORT=$((APP_PORT + 10))
 MAIL_UI_PORT=$((APP_PORT + 11))
+PROMETHEUS_PORT=$((APP_PORT + 12))
+ALERTMANAGER_PORT=$((APP_PORT + 13))
+GRAFANA_PORT=$((APP_PORT + 14))
 EOF
 fi
 DC=(docker compose -p "$P" --env-file "$ENV_FILE")
@@ -52,9 +57,10 @@ sleep 5
 # 3. 後端測試（在 app 容器裡執行）
 docker cp tools/. "$P-app-1:/code/"
 FAILED=()
-for t in api_test auth_test partner_test agent_test procurement_test automation_test eval_test rag_eval; do
+GRAFANA_PASSWORD=$(grep '^GRAFANA_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)
+for t in api_test auth_test partner_test agent_test multi_agent_test procurement_test automation_test eval_test rag_eval monitor_test; do
   echo "::group::$t"
-  if docker exec "$P-app-1" python "$t.py"; then echo "✔ $t"; else echo "✘ $t"; FAILED+=("$t"); fi
+  if docker exec -e GRAFANA_PASSWORD="$GRAFANA_PASSWORD" "$P-app-1" python "$t.py"; then echo "✔ $t"; else echo "✘ $t"; FAILED+=("$t"); fi
   echo "::endgroup::"
 done
 

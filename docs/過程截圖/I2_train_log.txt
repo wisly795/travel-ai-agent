@@ -1,0 +1,25 @@
+﻿條文 29 條；訓練 145 題、驗證 35 題、測試 38 題
+訓練前 驗證題： {'epoch': 0, 'top1': 0.6896551724137931, 'top3': 1.0, 'mrr': 0.8103}
+{'train_runtime': 14.3383, 'train_samples_per_second': 10.043, 'train_steps_per_second': 0.628, 'train_loss': 0.5990333027309842, 'epoch': 1.0}
+第 1 輪 驗證題： {'epoch': 1, 'top1': 0.7931034482758621, 'top3': 1.0, 'mrr': 0.8851, 'seconds': 15}
+docker : 
+At line:1 char:302
++ ... tch {} } }; docker run --rm -v "C:\Users\wisly\Desktop\travel-ai-agen ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Computing widget examples:   0%|          | 0/1 [00:00<?, ?example/s]
+{'train_runtime': 10.3677, 'train_samples_per_second': 13.889, 'train_steps_per_second': 0.868, 'train_loss': 0.4145633644527859, 'epoch': 1.0}
+第 2 輪 驗證題： {'epoch': 2, 'top1': 0.7586206896551724, 'top3': 0.9310344827586207, 'mrr': 0.8603, 'seconds': 11}
+{'train_runtime': 10.4276, 'train_samples_per_second': 13.81, 'train_steps_per_second': 0.863, 'train_loss': 0.29327236281500924, 'epoch': 1.0}
+第 3 輪 驗證題： {'epoch': 3, 'top1': 0.7586206896551724, 'top3': 0.9310344827586207, 'mrr': 0.8603, 'seconds': 11}
+{'train_runtime': 10.1982, 'train_samples_per_second': 14.12, 'train_steps_per_second': 0.883, 'train_loss': 0.19898292753431532, 'epoch': 1.0}
+第 4 輪 驗證題： {'epoch': 4, 'top1': 0.8275862068965517, 'top3': 0.9310344827586207, 'mrr': 0.8966, 'seconds': 11}
+{'train_runtime': 9.6355, 'train_samples_per_second': 14.945, 'train_steps_per_second': 0.934, 'train_loss': 0.16874579588572183, 'epoch': 1.0}
+第 5 輪 驗證題： {'epoch': 5, 'top1': 0.8275862068965517, 'top3': 1.0, 'mrr': 0.9023, 'seconds': 10}
+{'train_runtime': 9.8539, 'train_samples_per_second': 14.614, 'train_steps_per_second': 0.913, 'train_loss': 0.13923570844862196, 'epoch': 1.0}
+第 6 輪 驗證題： {'epoch': 6, 'top1': 0.896551724137931, 'top3': 1.0, 'mrr': 0.9425, 'seconds': 11}
+選用第 6 輪
+完成：/p/models/finetuned（model.onnx 113 MB）
+                                                                     

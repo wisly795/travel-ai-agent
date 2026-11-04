@@ -56,6 +56,10 @@ function addBubble(role, text) {
   return bubble;
 }
 
+function chatMode() {
+  return document.querySelector("input[name=chat-mode]:checked").value;
+}
+
 function newConversation() {
   conversationId = null;
   $("chat-log").replaceChildren();
@@ -76,11 +80,14 @@ async function sendChat(text) {
     const data = await api("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversation_id: conversationId, message: text }),
+      body: JSON.stringify({ conversation_id: conversationId, message: text, mode: chatMode() }),
     });
     conversationId = data.conversation_id;
     waiting.className = "bubble ai";
     waiting.textContent = data.reply;
+    if (data.agents) {
+      addText(waiting, "small", `經過：${data.agents.map((step) => step.agent).join(" → ")}`);
+    }
     if (data.tools_used.length) {
       const labels = [...new Set(data.tools_used.map((name) => TOOL_LABELS[name] || name))];
       addText(waiting, "small", `使用工具：${labels.join("、")}`);
@@ -201,7 +208,10 @@ async function createQuote(event) {
 // ---------- 旅遊規定 ----------
 
 async function loadPolicies() {
-  const docs = await api("/api/policies");
+  const [docs, info] = await Promise.all([api("/api/policies"), api("/api/policies/model")]);
+  $("policy-model").textContent = info.finetuned
+    ? `向量模型：旅遊問答微調版（相似度門檻 ${info.min_score}）`
+    : `向量模型：原始多語模型（相似度門檻 ${info.min_score}）`;
   const list = $("policy-list");
   list.replaceChildren();
   docs.forEach((doc) => {
@@ -341,8 +351,13 @@ async function loadTurns() {
     addText(item, "p", `AI：${turn.reply}`).className = "policy-text";
     addText(item, "small",
       `工具：${tools.join("、") || "無"}｜模型 ${turn.model}｜US$ ${Number(turn.cost_usd).toFixed(5)}`);
+    if (turn.agent_path) {
+      const steps = turn.agent_path.map((step) => `${step.agent}：${step.detail}`).join("\n");
+      addText(item, "pre", `多 Agent 流程\n${steps}`).className = "tool-log";
+    }
     turn.tools.forEach((t) => {
-      const detail = addText(item, "pre", `${t.is_error ? "⚠ " : ""}${t.tool}\n輸入：${JSON.stringify(t.input)}\n結果：${JSON.stringify(t.output).slice(0, 600)}`);
+      const who = t.agent ? `［${t.agent}］` : "";
+      const detail = addText(item, "pre", `${t.is_error ? "⚠ " : ""}${who}${t.tool}\n輸入：${JSON.stringify(t.input)}\n結果：${JSON.stringify(t.output).slice(0, 600)}`);
       detail.className = "tool-log";
     });
   });
@@ -490,8 +505,9 @@ let evalTimer = null;
 async function loadEvals() {
   const data = await staffApi("/api/admin/evals");
   const button = $("eval-run");
-  button.hidden = session.user.role !== "管理員";
-  button.disabled = data.running;
+  const multi = $("eval-run-multi");
+  button.hidden = multi.hidden = session.user.role !== "管理員";
+  button.disabled = multi.disabled = data.running;
   button.textContent = data.running ? "評測執行中…" : "執行評測（約 2 分鐘）";
   const summary = $("eval-summary");
   summary.replaceChildren();
@@ -531,8 +547,8 @@ async function loadEvals() {
   if (data.running) evalTimer = setTimeout(() => loadEvals().catch(() => {}), 10000);
 }
 
-async function runEval() {
-  await staffAction(() => staffApi("/api/admin/evals/run", { method: "POST" }));
+async function runEval(mode) {
+  await staffAction(() => staffApi("/api/admin/evals/run", { method: "POST", body: JSON.stringify({ mode }) }));
 }
 
 async function loadPartners() {
@@ -687,6 +703,8 @@ $("chat-examples").addEventListener("click", (event) => {
   if (event.target.matches(".chip")) sendChat(event.target.textContent);
 });
 $("chat-new").addEventListener("click", newConversation);
+// 兩種模式的對話紀錄格式不同，切換時開新對話
+document.querySelectorAll("input[name=chat-mode]").forEach((radio) => radio.addEventListener("change", newConversation));
 $("search-form").addEventListener("submit", searchPackages);
 $("policy-form").addEventListener("submit", searchPolicies);
 $("quote-form").addEventListener("submit", createQuote);
@@ -695,7 +713,8 @@ $("export").addEventListener("click", exportCsv);
 $("logout").addEventListener("click", logout);
 $("user-form").addEventListener("submit", createUser);
 $("partner-form").addEventListener("submit", createPartner);
-$("eval-run").addEventListener("click", runEval);
+$("eval-run").addEventListener("click", () => runEval("single"));
+$("eval-run-multi").addEventListener("click", () => runEval("multi"));
 if (session) showStaff();
 document.querySelectorAll(".subtab").forEach((tab) => tab.addEventListener("click", () => setView(tab.dataset.view)));
 $("read-all").addEventListener("click", () => staffAction(() => staffApi("/api/notifications/read", {

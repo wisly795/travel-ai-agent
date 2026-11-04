@@ -1,0 +1,102 @@
+﻿{
+  "uid": "travel-ops",
+  "title": "旅遊系統監控",
+  "description": "主系統健康狀態、流量、錯誤率、回應時間與 AI 花費（模擬資料）",
+  "timezone": "Asia/Taipei",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": {"from": "now-1h", "to": "now"},
+  "tags": ["travel"],
+  "panels": [
+    {
+      "type": "stat", "title": "主系統", "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "up{job=\"travel-app\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {
+        "mappings": [{"type": "value", "options": {"0": {"text": "停止", "color": "#d03b3b"}, "1": {"text": "正常", "color": "#1baf7a"}}}],
+        "color": {"mode": "fixed", "fixedColor": "#1baf7a"}}},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "gauge", "title": "今日 AI 花費（美元，上限見刻度）", "gridPos": {"x": 4, "y": 0, "w": 5, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "travel_ai_cost_today_usd", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 3, "min": 0, "max": 1,
+        "thresholds": {"mode": "percentage", "steps": [{"color": "#2a78d6", "value": null}, {"color": "#eb6834", "value": 80}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "showThresholdMarkers": true}
+    },
+    {
+      "type": "stat", "title": "今日 AI 對話次數", "gridPos": {"x": 9, "y": 0, "w": 3, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "travel_ai_turns_today", "refId": "A"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#2a78d6"}}},
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat", "title": "ERP 同步失敗", "gridPos": {"x": 12, "y": 0, "w": 3, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "travel_erp_sync_failed", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "#1baf7a", "value": null}, {"color": "#eb6834", "value": 1}]}}},
+      "options": {"colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat", "title": "待核准採購單", "gridPos": {"x": 15, "y": 0, "w": 3, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "travel_purchase_orders_pending", "refId": "A"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#2a78d6"}}},
+      "options": {"colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "stat", "title": "最新 AI 評測通過率", "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "travel_eval_pass_ratio", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percentunit", "decimals": 0,
+        "thresholds": {"mode": "absolute", "steps": [{"color": "#eb6834", "value": null}, {"color": "#1baf7a", "value": 0.9}]}}},
+      "options": {"colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "type": "timeseries", "title": "每分鐘請求數（依結果）", "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(rate(travel_http_requests_total{status=~\"2..|3..\"}[1m])) * 60", "legendFormat": "成功", "refId": "A"},
+        {"expr": "sum(rate(travel_http_requests_total{status=~\"4..\"}[1m])) * 60", "legendFormat": "使用者錯誤（4xx）", "refId": "B"},
+        {"expr": "sum(rate(travel_http_requests_total{status=~\"5..\"}[1m])) * 60", "legendFormat": "系統錯誤（5xx）", "refId": "C"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineWidth": 2, "fillOpacity": 0}}, "overrides": [
+        {"matcher": {"id": "byName", "options": "成功"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#2a78d6"}}]},
+        {"matcher": {"id": "byName", "options": "使用者錯誤（4xx）"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#eb6834"}}]},
+        {"matcher": {"id": "byName", "options": "系統錯誤（5xx）"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d03b3b"}}]}
+      ]},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "type": "timeseries", "title": "回應時間（AI 客服以外的 API）", "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (le) (rate(travel_http_request_seconds_bucket{route!=\"/api/chat\"}[5m])))", "legendFormat": "一半的請求在這之內（P50）", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(travel_http_request_seconds_bucket{route!=\"/api/chat\"}[5m])))", "legendFormat": "95% 的請求在這之內（P95）", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineWidth": 2, "fillOpacity": 0}}, "overrides": [
+        {"matcher": {"id": "byName", "options": "一半的請求在這之內（P50）"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#2a78d6"}}]},
+        {"matcher": {"id": "byName", "options": "95% 的請求在這之內（P95）"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#eb6834"}}]}
+      ]},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "type": "timeseries", "title": "AI 客服回應時間", "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(travel_http_request_seconds_bucket{route=\"/api/chat\"}[15m])))", "legendFormat": "P95", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "color": {"mode": "fixed", "fixedColor": "#2a78d6"}, "custom": {"lineWidth": 2, "fillOpacity": 0}}},
+      "options": {"legend": {"displayMode": "hidden"}, "tooltip": {"mode": "single"}}
+    },
+    {
+      "type": "table", "title": "各 API 請求次數（目前區間）", "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sort_desc(sum by (route) (increase(travel_http_requests_total[$__range])))", "format": "table", "instant": true, "refId": "A"}],
+      "transformations": [{"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"route": "API", "Value": "次數"}}}],
+      "fieldConfig": {"defaults": {"decimals": 0}}
+    }
+  ]
+}

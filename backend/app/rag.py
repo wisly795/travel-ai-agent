@@ -6,25 +6,60 @@ from pathlib import Path
 
 from .db import connect, query
 
-EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+BASE_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+# 用旅遊問答微調過的版本（tools/finetune/train.py 產生）；有檔案就用它，RAG_MODEL=base 可切回原始模型
+FINETUNED_MODEL = "travel/minilm-travel-finetuned"
+FINETUNED_DIR = Path(os.environ.get("FINETUNED_DIR", "/code/models/finetuned"))
 MODEL_DIR = os.environ.get("MODEL_DIR", "/models")
 POLICY_DIR = Path(os.environ.get("POLICY_DIR", "/code/data/policies"))
-# 相似度低於這個分數就當作「文件沒有提到」，避免硬湊不相關的條文。
-MIN_SCORE = 0.35
+# 相似度低於門檻就當作「文件沒有提到」，避免硬湊不相關的條文。
+# 兩個模型的分數分布不同，門檻各自用驗證題挑選（tools/rag_compare.py）。
+MIN_SCORES = {BASE_MODEL: 0.35, FINETUNED_MODEL: 0.35}
 
-_model = None
+
+def pick_model(name=None):
+    if name:
+        return name
+    if os.environ.get("RAG_MODEL", "finetuned") != "base" and (FINETUNED_DIR / "model.onnx").exists():
+        return FINETUNED_MODEL
+    return BASE_MODEL
 
 
-def model():
-    global _model
-    if _model is None:
+EMBED_MODEL = pick_model()
+MIN_SCORE = MIN_SCORES[EMBED_MODEL]
+
+_models = {}
+
+
+def model(name=None):
+    name = name or EMBED_MODEL
+    if name not in _models:
         from fastembed import TextEmbedding
-        _model = TextEmbedding(EMBED_MODEL, cache_dir=MODEL_DIR)
-    return _model
+        if name == FINETUNED_MODEL:
+            from fastembed.common.model_description import ModelSource, PoolingType
+            if FINETUNED_MODEL not in {m["model"] for m in TextEmbedding.list_supported_models()}:
+                TextEmbedding.add_custom_model(model=FINETUNED_MODEL, pooling=PoolingType.MEAN, normalization=True,
+                                               sources=ModelSource(hf=FINETUNED_MODEL), dim=384,
+                                               model_file="model.onnx")
+            _models[name] = TextEmbedding(FINETUNED_MODEL, specific_model_path=str(FINETUNED_DIR))
+        else:
+            _models[name] = TextEmbedding(name, cache_dir=MODEL_DIR)
+    return _models[name]
 
 
-def embed(texts):
-    return [vector.tolist() for vector in model().embed(texts)]
+def model_fingerprint():
+    """模型名稱＋微調檔案內容；重新訓練後啟動時會自動重建向量。"""
+    if EMBED_MODEL == FINETUNED_MODEL:
+        return EMBED_MODEL.encode() + hashlib.sha256((FINETUNED_DIR / "model.onnx").read_bytes()).digest()
+    return EMBED_MODEL.encode()
+
+
+def info():
+    return {"model": EMBED_MODEL, "finetuned": EMBED_MODEL == FINETUNED_MODEL, "min_score": MIN_SCORE}
+
+
+def embed(texts, name=None):
+    return [vector.tolist() for vector in model(name).embed(texts)]
 
 
 def to_pg(vector):
@@ -54,7 +89,7 @@ def load_documents():
 def sync():
     """文件內容有變才重新建立向量，啟動時呼叫。"""
     files = sorted(POLICY_DIR.glob("*.md"))
-    digest = hashlib.sha256(b"".join(p.read_bytes() for p in files) + EMBED_MODEL.encode()).hexdigest()
+    digest = hashlib.sha256(b"".join(p.read_bytes() for p in files) + model_fingerprint()).hexdigest()
     stored = query("SELECT value FROM app_meta WHERE key = 'policy_hash'")
     if stored and stored[0]["value"] == digest:
         return False

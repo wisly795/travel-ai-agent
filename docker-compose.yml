@@ -37,6 +37,8 @@ services:
       N8N_WEBHOOK_BASE: http://n8n:5678
       ERP_URL: http://erp:8000
       ERP_API_KEY: ${ERP_API_KEY:?請在 .env 設定 ERP_API_KEY}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+      RAG_MODEL: ${RAG_MODEL:-finetuned}
     depends_on:
       db:
         condition: service_healthy
@@ -104,7 +106,46 @@ services:
       - ./automation:/automation:ro
     ports: ["127.0.0.1:${N8N_PORT:-5678}:5678"]
     restart: unless-stopped
+  # 監控：Prometheus 收集指標並判斷告警 → Alertmanager 寄告警信到模擬信箱 → Grafana 畫成圖。只開在本機。
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    entrypoint: ["/bin/sh", "/etc/prometheus/start.sh"]
+    environment:
+      METRICS_TOKEN: ${METRICS_TOKEN:?請在 .env 設定 METRICS_TOKEN}
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/prometheus/start.sh:/etc/prometheus/start.sh:ro
+      - promdata:/prometheus
+    depends_on: [app]
+    ports: ["127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"]
+    restart: unless-stopped
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    depends_on: [mailpit]
+    ports: ["127.0.0.1:${ALERTMANAGER_PORT:-9093}:9093"]
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:11.3.1
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?請在 .env 設定 GRAFANA_PASSWORD}
+      GF_USERS_DEFAULT_LANGUAGE: zh-Hant
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/travel.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+    depends_on: [prometheus]
+    ports: ["127.0.0.1:${GRAFANA_PORT:-3000}:3000"]
+    restart: unless-stopped
 volumes:
   dbdata:
   erpdata:
   n8ndata:
+  promdata:
+  grafanadata:

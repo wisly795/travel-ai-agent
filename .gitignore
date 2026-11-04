@@ -16,6 +16,7 @@ docs/作品集/
 docs/過程截圖/Claude_API設定/
 
 # 模型訓練產物（體積大，由 tools/finetune 重新產生）
-models/
+models/*
+!models/README.md
 ci-shots/
 ci.env

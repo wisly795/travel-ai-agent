@@ -264,15 +264,18 @@ def check_limits(conversation_id):
             raise ChatError(429, "這段對話太長了，請按「新對話」重新開始")
 
 
-def load_history(conversation_id):
+def load_history(conversation_id, mode="single"):
+    """mode：single＝單一 Agent，multi＝多 Agent 協作。兩種的對話紀錄格式不同，不能混用。"""
     if conversation_id is None:
         # 先建立對話，轉接單等紀錄才能對應到這段對話。
         conversation_id = uuid.uuid4()
-        query("INSERT INTO conversations (id) VALUES (%s) RETURNING id", (conversation_id,))
+        query("INSERT INTO conversations (id, mode) VALUES (%s, %s) RETURNING id", (conversation_id, mode))
         return conversation_id, []
-    rows = query("SELECT history FROM conversations WHERE id = %s", (conversation_id,))
+    rows = query("SELECT history, mode FROM conversations WHERE id = %s", (conversation_id,))
     if not rows:
         raise ChatError(404, "找不到這段對話，請按「新對話」重新開始")
+    if rows[0]["mode"] != mode:
+        raise ChatError(409, "切換了客服模式，請按「新對話」重新開始")
     return conversation_id, rows[0]["history"]
 
 

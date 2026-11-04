@@ -249,3 +249,8 @@ CREATE TABLE IF NOT EXISTS eval_results (
 
 CREATE INDEX IF NOT EXISTS idx_ai_turns_created ON ai_turns(created_at);
 CREATE INDEX IF NOT EXISTS idx_ai_tool_calls_turn ON ai_tool_calls(turn_id);
+
+-- 多 Agent 協作：對話用哪種模式、每次經過哪些 Agent、每個工具是哪位專員呼叫的
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'single';
+ALTER TABLE ai_turns ADD COLUMN IF NOT EXISTS agent_path JSONB;
+ALTER TABLE ai_tool_calls ADD COLUMN IF NOT EXISTS agent TEXT;

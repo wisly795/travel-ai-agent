@@ -29,28 +29,35 @@ CASES = [
 # 已知弱點：口語用字和條文差太多，小型向量模型找不到；靠 AI 換說法再查（見 docs/錯誤紀錄.md B-1）。
 KNOWN_WEAK = {"人數不夠會不會開團"}
 
-top1 = top3 = empty_ok = 0
-weak_missed = 0
-for question, expected in CASES:
-    results = rag.search(question)
-    sources = [" ".join(r["source"].split()[:2]) for r in results]
-    if expected is None:
-        ok = not results
-        empty_ok += ok
-        print("PASS" if ok else "FAIL", question, "→", sources or "無結果")
-        continue
-    hit1 = bool(sources) and sources[0] == expected
-    hit3 = expected in sources
-    top1 += hit1
-    top3 += hit3
-    score = results[sources.index(expected)]["score"] if hit3 else "-"
-    weak = question in KNOWN_WEAK and not hit3
-    weak_missed += weak
-    label = "WEAK" if weak else "PASS" if hit3 else "FAIL"
-    print(label, f"{'第1名' if hit1 else '前3名' if hit3 else '沒找到'}", question, "→", sources[:3], score)
 
-answerable = sum(1 for _, e in CASES if e)
-print(f"\n第 1 名命中：{top1}/{answerable}　前 3 名命中：{top3}/{answerable}"
-      f"（其中已知弱點未命中 {weak_missed} 題）　無關問題回空：{empty_ok}/{len(CASES) - answerable}")
-passed = top3 + weak_missed == answerable and empty_ok == len(CASES) - answerable
-raise SystemExit(0 if passed else 1)
+def main():
+    print("向量模型：", rag.EMBED_MODEL, "　門檻：", rag.MIN_SCORE)
+    top1 = top3 = empty_ok = 0
+    weak_missed = 0
+    for question, expected in CASES:
+        results = rag.search(question)
+        sources = [" ".join(r["source"].split()[:2]) for r in results]
+        if expected is None:
+            ok = not results
+            empty_ok += ok
+            print("PASS" if ok else "FAIL", question, "→", sources or "無結果")
+            continue
+        hit1 = bool(sources) and sources[0] == expected
+        hit3 = expected in sources
+        top1 += hit1
+        top3 += hit3
+        score = results[sources.index(expected)]["score"] if hit3 else "-"
+        weak = question in KNOWN_WEAK and not hit3
+        weak_missed += weak
+        label = "WEAK" if weak else "PASS" if hit3 else "FAIL"
+        print(label, f"{'第1名' if hit1 else '前3名' if hit3 else '沒找到'}", question, "→", sources[:3], score)
+
+    answerable = sum(1 for _, e in CASES if e)
+    print(f"\n第 1 名命中：{top1}/{answerable}　前 3 名命中：{top3}/{answerable}"
+          f"（其中已知弱點未命中 {weak_missed} 題）　無關問題回空：{empty_ok}/{len(CASES) - answerable}")
+    passed = top3 + weak_missed == answerable and empty_ok == len(CASES) - answerable
+    raise SystemExit(0 if passed else 1)
+
+
+if __name__ == "__main__":
+    main()

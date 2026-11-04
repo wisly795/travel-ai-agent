@@ -1,0 +1,21 @@
+# Prometheus：每 15 秒到主系統抓一次指標，依 alerts.yml 判斷要不要告警
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: travel-app
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/token/metrics_token   # 啟動時由 METRICS_TOKEN 寫入
+    static_configs:
+      - targets: ["app:8000"]

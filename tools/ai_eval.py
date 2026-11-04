@@ -1,14 +1,15 @@
 """執行真實 AI 評測並產生報告（會花少量 API 額度，約 20–25 次對話）。
 
-在 app 容器內執行：python ai_eval.py [說明文字]
-報告寫到 /tmp/AI評測報告.md，再複製到 docs/評測/。
+在 app 容器內執行：python ai_eval.py [說明文字] [single|multi]
+報告寫到 /tmp/AI評測報告.md，再複製到 docs/評測/。multi＝測多 Agent 協作版。
 """
 import sys
 
 from app import evals
 
 label = sys.argv[1] if len(sys.argv) > 1 else "命令列執行"
-result = evals.run(label)
+mode = sys.argv[2] if len(sys.argv) > 2 else "single"
+result = evals.run(label, mode)
 lines = [
     f"# AI 自動評測報告",
     "",

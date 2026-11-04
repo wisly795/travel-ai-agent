@@ -7,7 +7,7 @@ import re
 import threading
 from datetime import timedelta
 
-from . import agent, quotes
+from . import agent, multi_agent, quotes
 from .db import connect, query
 
 
@@ -68,11 +68,12 @@ def grade(rules, reply, tools, quote_created):
     return failures
 
 
-def run_case(case_id, category, question, rules):
+def run_case(case_id, category, question, rules, mode="single"):
     messages = question if isinstance(question, list) else [question]
     conversation_id, replies, tools, created = None, [], [], None
+    chat = multi_agent.chat if mode == "multi" else agent.chat
     for message in messages:
-        result = agent.chat(conversation_id, message)
+        result = chat(conversation_id, message)
         conversation_id = result["conversation_id"]
         replies.append(result["reply"])
         tools += result["tools_used"]
@@ -86,14 +87,15 @@ def run_case(case_id, category, question, rules):
             "created_quote": created["id"] if created else None, "conversation_id": conversation_id}
 
 
-def run(label="手動執行"):
-    """依序跑完 20 題並存檔；AI 用量照常計入每日上限。"""
-    run_id = query("INSERT INTO eval_runs (label, model) VALUES (%s, %s) RETURNING id", (label, agent.CHAT_MODEL))[0]["id"]
+def run(label="手動執行", mode="single"):
+    """依序跑完 20 題並存檔；AI 用量照常計入每日上限。mode＝multi 時測多 Agent 協作版。"""
+    model = agent.CHAT_MODEL + ("（多 Agent）" if mode == "multi" else "")
+    run_id = query("INSERT INTO eval_runs (label, model) VALUES (%s, %s) RETURNING id", (label, model))[0]["id"]
     first_turn = query("SELECT coalesce(max(id), 0) AS n FROM ai_turns")[0]["n"]
     results = []
     for case in cases():
         try:
-            result = run_case(*case)
+            result = run_case(*case, mode=mode)
         except agent.ChatError as error:
             result = {"case_id": case[0], "category": case[1], "question": str(case[2]), "passed": False,
                       "failures": [f"AI 服務錯誤：{error.message}"], "reply": "", "tools": [], "created_quote": None}
@@ -155,14 +157,14 @@ def history(limit=10):
 _running = threading.Lock()
 
 
-def start_background(label):
+def start_background(label, mode="single"):
     """從後台按鈕觸發：在背景執行，避免網頁請求等太久。同時只能跑一個。"""
     if not _running.acquire(blocking=False):
         return False
 
     def work():
         try:
-            run(label)
+            run(label, mode)
         finally:
             _running.release()
 

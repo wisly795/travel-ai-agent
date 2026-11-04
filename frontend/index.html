@@ -26,6 +26,11 @@
           <button id="chat-new" class="ghost" type="button">新對話</button>
         </div>
         <p id="chat-status" class="hint"></p>
+        <fieldset class="mode-switch">
+          <legend>客服模式</legend>
+          <label><input type="radio" name="chat-mode" value="single" checked> 單一 Agent</label>
+          <label><input type="radio" name="chat-mode" value="multi"> 多 Agent 協作（分流＋專員＋檢查員）</label>
+        </fieldset>
         <div id="chat-log" class="chat-log" aria-live="polite"></div>
         <div id="chat-examples" class="examples">
           <button type="button" class="chip">4 個人想去沖繩，每人預算 3 萬</button>
@@ -71,6 +76,7 @@
       <form id="policy-form" class="panel">
         <h2>查規定</h2>
         <p class="hint">用自己的話描述問題，系統會用向量搜尋找出意思最接近的條文（AI 客服回答規定時也是用這個方法）。</p>
+        <p id="policy-model" class="hint"></p>
         <div class="chat-form">
           <input id="policy-input" maxlength="300" required placeholder="例如：出發前一週取消可以退多少？" aria-label="要查的規定問題">
           <button type="submit">搜尋</button>
@@ -110,7 +116,10 @@
         <div id="view-evals" class="panel view" hidden>
           <div class="row">
             <h2>AI 自動評測</h2>
-            <button id="eval-run" type="button" hidden>執行評測（約 2 分鐘）</button>
+            <div class="toolbar">
+              <button id="eval-run" type="button" hidden>執行評測（約 2 分鐘）</button>
+              <button id="eval-run-multi" class="ghost" type="button" hidden>評測多 Agent 版</button>
+            </div>
           </div>
           <p class="hint">20 題標準問答，用程式規則自動評分：金額是否正確、是否附條文出處、是否用對工具、該拒絕時是否拒絕、稱謂是否正確。改 AI 規則或換模型前後各跑一次，用數字確認有沒有變好。只有管理員能執行。</p>
           <div id="eval-summary" class="stats"></div>

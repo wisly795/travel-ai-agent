@@ -1,0 +1,24 @@
+﻿PASS 沒帶權杖看不到指標 
+PASS 權杖錯誤看不到指標 
+PASS 帶權杖可以看到指標 
+PASS 請求數依路由樣板記錄（不是實際網址） 
+PASS 不存在的網址歸到「其他」，不會讓指標無限增加 
+PASS 指標 travel_http_request_seconds_bucket 
+PASS 指標 travel_ai_cost_today_usd 
+PASS 指標 travel_ai_cost_limit_usd 
+PASS 指標 travel_erp_sync_failed 
+PASS 指標 travel_purchase_orders_pending 
+PASS 指標 travel_db_up 
+PASS Prometheus 抓得到主系統 
+PASS 告警規則全部載入（7 條） ['主系統停止回應', '資料庫無法查詢', '錯誤率偏高', '回應變慢', 'AI花費接近每日上限', 'ERP同步失敗未處理', 'AI評測分數下降']
+PASS Prometheus 查得到營運指標 [{'metric': {'__name__': 'travel_ai_cost_limit_usd', 'instance': 'app:8000', 'job': 'travel-app'}, 'value': [1793749341.855, '1']}]
+PASS Prometheus 有接上 Alertmanager 
+PASS Grafana 正常 
+PASS 監控儀表板自動建立 200
+PASS 沒登入看不到 Grafana 儀表板 
+PASS Grafana 連得到 Prometheus {"details":{"application":"Prometheus","features":{"rulerApiEnabled":false}},"message":"Successfully queried the Prometheus API.","status":"OK"}
+PASS Alertmanager 收下告警 200
+PASS 告警信寄到 IT 信箱 【系統告警】監控測試告警1793749341（firing）
+
+21/21 通過
+

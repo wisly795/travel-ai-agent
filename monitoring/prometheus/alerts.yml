@@ -1,0 +1,53 @@
+# 告警規則：條件持續一段時間（for）才發，避免一閃即逝的誤報
+groups:
+  - name: travel
+    rules:
+      - alert: 主系統停止回應
+        expr: up{job="travel-app"} == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "主系統 1 分鐘以上抓不到指標，可能已停止"
+
+      - alert: 資料庫無法查詢
+        expr: travel_db_up == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "主系統連不上資料庫"
+
+      - alert: 錯誤率偏高
+        expr: |
+          sum(rate(travel_http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(travel_http_requests_total[5m])), 0.001) > 0.05
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "近 5 分鐘有超過 5% 的請求回應 5xx 錯誤"
+
+      - alert: 回應變慢
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(travel_http_request_seconds_bucket{route!="/api/chat"}[5m]))) > 2
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "AI 客服以外的 API，95% 回應時間超過 2 秒"
+
+      - alert: AI花費接近每日上限
+        expr: travel_ai_cost_today_usd / travel_ai_cost_limit_usd > 0.8
+        labels: {severity: warning}
+        annotations:
+          summary: "今日 AI 花費已超過每日上限的 80%"
+
+      - alert: ERP同步失敗未處理
+        expr: travel_erp_sync_failed > 0
+        for: 30m
+        labels: {severity: warning}
+        annotations:
+          summary: "有報價同步 ERP 失敗超過 30 分鐘仍未重送成功"
+
+      - alert: AI評測分數下降
+        expr: travel_eval_pass_ratio < 0.9
+        labels: {severity: warning}
+        annotations:
+          summary: "最新一次 AI 評測通過率低於 90%，請檢查最近的規則或模型變更"
